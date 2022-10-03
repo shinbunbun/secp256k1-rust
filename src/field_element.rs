@@ -1,3 +1,5 @@
+use std::ops::Add;
+
 #[derive(PartialEq, Debug)]
 struct FieldElement {
     num: u64,
@@ -13,10 +15,24 @@ impl FieldElement {
     }
 }
 
+impl Add for FieldElement {
+    type Output = Self;
+
+    fn add(self, other: Self) -> Self {
+        if self.prime != other.prime {
+            panic!("Cannot add two numbers in different Fields");
+        }
+        Self {
+            num: (self.num + other.num) % self.prime,
+            prime: self.prime,
+        }
+    }
+}
+
 #[cfg(test)]
 mod test {
     #[test]
-    fn test_field_element() {
+    fn test_field_element_derive() {
         use super::FieldElement;
 
         let a = FieldElement::new(7, 13);
@@ -28,5 +44,16 @@ mod test {
 
         // test Debug
         assert_eq!(format!("{:?}", a), "FieldElement { num: 7, prime: 13 }");
+    }
+
+    #[test]
+    fn test_field_element_add() {
+        use super::FieldElement;
+
+        let a = FieldElement::new(7, 13);
+        let b = FieldElement::new(12, 13);
+        let c = FieldElement::new(6, 13);
+
+        assert_eq!(a + b, c);
     }
 }
