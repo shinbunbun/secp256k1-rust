@@ -1,4 +1,4 @@
-use std::ops::{Add, Sub};
+use std::ops::{Add, Mul, Sub};
 
 #[derive(PartialEq, Debug, Clone, Copy)]
 struct FieldElement {
@@ -50,6 +50,20 @@ impl Sub for FieldElement {
     }
 }
 
+impl Mul for FieldElement {
+    type Output = Self;
+
+    fn mul(self, other: Self) -> Self::Output {
+        if self.prime != other.prime {
+            panic!("Cannot multiply two numbers in different Fields");
+        }
+        Self {
+            num: (self.num * other.num) % self.prime,
+            prime: self.prime,
+        }
+    }
+}
+
 #[cfg(test)]
 mod test {
     #[test]
@@ -93,5 +107,16 @@ mod test {
 
         assert_eq!(c - b, a);
         assert_eq!(b - a, d);
+    }
+
+    #[test]
+    fn test_field_element_mul() {
+        use super::FieldElement;
+
+        let a = FieldElement::new(3, 13);
+        let b = FieldElement::new(12, 13);
+        let c = FieldElement::new(10, 13);
+
+        assert_eq!(a * b, c);
     }
 }
