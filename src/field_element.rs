@@ -1,4 +1,4 @@
-use std::ops::Add;
+use std::ops::{Add, Sub};
 
 #[derive(PartialEq, Debug, Clone, Copy)]
 struct FieldElement {
@@ -24,6 +24,27 @@ impl Add for FieldElement {
         }
         Self {
             num: (self.num + other.num) % self.prime,
+            prime: self.prime,
+        }
+    }
+}
+
+impl Sub for FieldElement {
+    type Output = Self;
+
+    fn sub(self, other: Self) -> Self::Output {
+        if self.prime != other.prime {
+            panic!("Cannot subtract two numbers in different Fields");
+        }
+
+        let num = if self.num >= other.num {
+            self.num - other.num
+        } else {
+            self.prime - other.num + self.num
+        };
+
+        Self {
+            num,
             prime: self.prime,
         }
     }
@@ -63,5 +84,18 @@ mod test {
         let c = FieldElement::new(6, 13);
 
         assert_eq!(a + b, c);
+    }
+
+    #[test]
+    fn test_field_element_sub() {
+        use super::FieldElement;
+
+        let a = FieldElement::new(7, 13);
+        let b = FieldElement::new(12, 13);
+        let c = FieldElement::new(6, 13);
+        let d = FieldElement::new(5, 13);
+
+        assert_eq!(c - b, a);
+        assert_eq!(b - a, d);
     }
 }
