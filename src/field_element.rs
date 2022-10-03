@@ -13,6 +13,13 @@ impl FieldElement {
         }
         Self { num, prime }
     }
+
+    fn pow(&self, exponent: u32) -> Self {
+        Self {
+            num: self.num.pow(exponent) % self.prime,
+            prime: self.prime,
+        }
+    }
 }
 
 impl Add for FieldElement {
@@ -118,5 +125,15 @@ mod test {
         let c = FieldElement::new(10, 13);
 
         assert_eq!(a * b, c);
+    }
+
+    #[test]
+    fn test_field_element_pow() {
+        use super::FieldElement;
+
+        let a = FieldElement::new(3, 13);
+        let b = FieldElement::new(1, 13);
+
+        assert!(a.pow(3) == b);
     }
 }
