@@ -1,6 +1,6 @@
 use std::ops::Add;
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Clone, Copy)]
 struct FieldElement {
     num: u64,
     prime: u64,
@@ -44,6 +44,14 @@ mod test {
 
         // test Debug
         assert_eq!(format!("{:?}", a), "FieldElement { num: 7, prime: 13 }");
+
+        // test Clone
+        let c = a.clone();
+        assert_eq!(a, c);
+
+        // test Copy
+        let d = a;
+        assert_eq!(a, d);
     }
 
     #[test]
