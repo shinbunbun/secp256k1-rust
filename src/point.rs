@@ -1,16 +1,16 @@
-use rug::ops::Pow;
+use rug::{ops::Pow, Integer};
 
 #[derive(PartialEq, Debug, Clone)]
 struct Point {
-    a: i128,
-    b: i128,
-    x: i128,
-    y: i128,
+    a: Integer,
+    b: Integer,
+    x: Integer,
+    y: Integer,
 }
 
 impl Point {
-    fn new(x: i128, y: i128, a: i128, b: i128) -> Self {
-        if y.pow(2) != x.pow(3) + a * x + b {
+    fn new(x: Integer, y: Integer, a: Integer, b: Integer) -> Self {
+        if y.clone().pow(2) != x.clone().pow(3) + a.clone() * x.clone() + b.clone() {
             panic!("({}, {}) is not on the curve", x, y);
         }
         Self { a, b, x, y }
@@ -18,13 +18,30 @@ impl Point {
 }
 
 mod test {
+    use rug::Integer;
+
     use super::Point;
 
     #[test]
     fn test_derive() {
-        let p1 = Point::new(-1, -1, 5, 7);
-        let p2 = Point::new(-1, -1, 5, 7);
-        let p3 = Point::new(-1, 1, 5, 7);
+        let p1 = Point::new(
+            Integer::from(-1),
+            Integer::from(-1),
+            Integer::from(5),
+            Integer::from(7),
+        );
+        let p2 = Point::new(
+            Integer::from(-1),
+            Integer::from(-1),
+            Integer::from(5),
+            Integer::from(7),
+        );
+        let p3 = Point::new(
+            Integer::from(-1),
+            Integer::from(1),
+            Integer::from(5),
+            Integer::from(7),
+        );
 
         // test PartialEq
         assert_eq!(p1, p2);
