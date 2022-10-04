@@ -12,7 +12,7 @@ struct Point {
 
 impl Point {
     fn new(x: Option<Integer>, y: Option<Integer>, a: Integer, b: Integer) -> Self {
-        if x.is_none() || y.is_none() {
+        if x.is_none() && y.is_none() {
             return Self {
                 x: None,
                 y: None,
@@ -21,8 +21,10 @@ impl Point {
             };
         }
 
-        if y.clone().unwrap().pow(2)
-            != x.clone().unwrap().pow(3) + a.clone() * x.clone().unwrap() + b.clone()
+        if x.is_none()
+            || y.is_none()
+            || y.clone().unwrap().pow(2)
+                != x.clone().unwrap().pow(3) + a.clone() * x.clone().unwrap() + b.clone()
         {
             panic!("({:?}, {:?}) is not on the curve", x, y);
         }
@@ -31,7 +33,7 @@ impl Point {
     }
 }
 
-/* impl Add for Point {
+impl Add for Point {
     type Output = Self;
 
     fn add(self, other: Self) -> Self {
@@ -46,8 +48,14 @@ impl Point {
             return self;
         }
 
+        Self {
+            x: None,
+            y: None,
+            a: self.a,
+            b: self.b,
+        }
     }
-} */
+}
 
 mod test {
     use rug::Integer;
@@ -87,5 +95,18 @@ mod test {
 
         // test Clone
         let _p4 = p1.clone();
+    }
+
+    #[test]
+    fn test_point_add() {
+        let p1 = Point::new(None, None, Integer::from(5), Integer::from(7));
+        let p2 = Point::new(
+            Some(Integer::from(-1)),
+            Some(Integer::from(-1)),
+            Integer::from(5),
+            Integer::from(7),
+        );
+
+        assert_eq!(p1 + p2.clone(), p2);
     }
 }
