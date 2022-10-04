@@ -4,6 +4,8 @@ let
 in pkgs.mkShell {
   buildInputs = with pkgs; [ 
     rustup
+    gmp
+    gnum4
   ];
   shellHook = ''
   rustup component add rustfmt clippy
