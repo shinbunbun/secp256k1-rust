@@ -55,7 +55,7 @@ mod test {
     use super::Point;
 
     #[test]
-    fn test_derive() {
+    fn test_point_derive() {
         let p1 = Point::new(
             Some(Integer::from(-1)),
             Some(Integer::from(-1)),
