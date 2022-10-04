@@ -99,12 +99,11 @@ impl Div for FieldElement {
 
 #[cfg(test)]
 mod test {
+    use super::FieldElement;
     use rug::Integer;
 
     #[test]
     fn test_field_element_derive() {
-        use super::FieldElement;
-
         let a = FieldElement::new(Integer::from(7), Integer::from(13));
         let b = FieldElement::new(Integer::from(6), Integer::from(13));
 
@@ -122,8 +121,6 @@ mod test {
 
     #[test]
     fn test_field_element_add() {
-        use super::FieldElement;
-
         let a = FieldElement::new(Integer::from(7), Integer::from(13));
         let b = FieldElement::new(Integer::from(12), Integer::from(13));
         let c = FieldElement::new(Integer::from(6), Integer::from(13));
@@ -133,8 +130,6 @@ mod test {
 
     #[test]
     fn test_field_element_sub() {
-        use super::FieldElement;
-
         let a = FieldElement::new(Integer::from(7), Integer::from(13));
         let b = FieldElement::new(Integer::from(12), Integer::from(13));
         let c = FieldElement::new(Integer::from(6), Integer::from(13));
@@ -146,8 +141,6 @@ mod test {
 
     #[test]
     fn test_field_element_mul() {
-        use super::FieldElement;
-
         let a = FieldElement::new(Integer::from(3), Integer::from(13));
         let b = FieldElement::new(Integer::from(12), Integer::from(13));
         let c = FieldElement::new(Integer::from(10), Integer::from(13));
@@ -157,8 +150,6 @@ mod test {
 
     #[test]
     fn test_field_element_pow() {
-        use super::FieldElement;
-
         let a = FieldElement::new(Integer::from(3), Integer::from(13));
         let b = FieldElement::new(Integer::from(1), Integer::from(13));
 
@@ -167,8 +158,6 @@ mod test {
 
     #[test]
     fn test_field_element_div() {
-        use super::FieldElement;
-
         let a = FieldElement::new(Integer::from(3), Integer::from(31));
         let b = FieldElement::new(Integer::from(24), Integer::from(31));
         let c = FieldElement::new(Integer::from(4), Integer::from(31));
