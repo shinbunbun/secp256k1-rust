@@ -1,23 +1,33 @@
-use std::ops::{Add, Mul, Sub};
+use rug::{ops::Pow, Integer};
+use std::ops::{Add, Div, Mul, Sub};
 
-#[derive(PartialEq, Debug, Clone, Copy)]
+#[derive(PartialEq, Debug, Clone)]
 struct FieldElement {
-    num: u64,
-    prime: u64,
+    num: Integer,
+    prime: Integer,
 }
 
 impl FieldElement {
-    fn new(num: u64, prime: u64) -> Self {
+    fn new(num: Integer, prime: Integer) -> Self {
         if num >= prime {
             panic!("Num {} not in field range 0 to {}", num, prime - 1);
         }
         Self { num, prime }
     }
 
-    fn pow(&self, exponent: u32) -> Self {
+    fn pow(&self, mut n: Integer, m: Integer) -> Self {
+        let mut ret = Integer::from(1);
+        let mut x = self.num.clone();
+        while n > 0 {
+            if n.clone() & Integer::from(1) == 1 {
+                ret = ret * x.clone() % m.clone();
+            }
+            x = x.clone() * x.clone() % m.clone();
+            n >>= 1;
+        }
         Self {
-            num: self.num.pow(exponent) % self.prime,
-            prime: self.prime,
+            num: ret,
+            prime: self.prime.clone(),
         }
     }
 }
@@ -30,7 +40,7 @@ impl Add for FieldElement {
             panic!("Cannot add two numbers in different Fields");
         }
         Self {
-            num: (self.num + other.num) % self.prime,
+            num: (self.num + other.num) % self.prime.clone(),
             prime: self.prime,
         }
     }
@@ -47,7 +57,7 @@ impl Sub for FieldElement {
         let num = if self.num >= other.num {
             self.num - other.num
         } else {
-            self.prime - other.num + self.num
+            self.prime.clone() - other.num + self.num
         };
 
         Self {
@@ -65,20 +75,33 @@ impl Mul for FieldElement {
             panic!("Cannot multiply two numbers in different Fields");
         }
         Self {
-            num: (self.num * other.num) % self.prime,
+            num: (self.num * other.num) % self.prime.clone(),
             prime: self.prime,
         }
     }
 }
 
+impl Div for FieldElement {
+    type Output = Self;
+
+    fn div(self, other: Self) -> Self::Output {
+        if self.prime != other.prime {
+            panic!("Cannot divide two numbers in different Fields");
+        }
+        self.clone() * other.pow(self.prime.clone() - Integer::from(2), self.prime)
+    }
+}
+
 #[cfg(test)]
 mod test {
+    use rug::Integer;
+
     #[test]
     fn test_field_element_derive() {
         use super::FieldElement;
 
-        let a = FieldElement::new(7, 13);
-        let b = FieldElement::new(6, 13);
+        let a = FieldElement::new(Integer::from(7), Integer::from(13));
+        let b = FieldElement::new(Integer::from(6), Integer::from(13));
 
         // test PartialEq
         assert!(!(a == b));
@@ -87,8 +110,8 @@ mod test {
         // test Debug
         assert_eq!(format!("{:?}", a), "FieldElement { num: 7, prime: 13 }");
 
-        // test Copy
-        let d = a;
+        // test Clone
+        let d = a.clone();
         assert_eq!(a, d);
     }
 
@@ -96,9 +119,9 @@ mod test {
     fn test_field_element_add() {
         use super::FieldElement;
 
-        let a = FieldElement::new(7, 13);
-        let b = FieldElement::new(12, 13);
-        let c = FieldElement::new(6, 13);
+        let a = FieldElement::new(Integer::from(7), Integer::from(13));
+        let b = FieldElement::new(Integer::from(12), Integer::from(13));
+        let c = FieldElement::new(Integer::from(6), Integer::from(13));
 
         assert_eq!(a + b, c);
     }
@@ -107,12 +130,12 @@ mod test {
     fn test_field_element_sub() {
         use super::FieldElement;
 
-        let a = FieldElement::new(7, 13);
-        let b = FieldElement::new(12, 13);
-        let c = FieldElement::new(6, 13);
-        let d = FieldElement::new(5, 13);
+        let a = FieldElement::new(Integer::from(7), Integer::from(13));
+        let b = FieldElement::new(Integer::from(12), Integer::from(13));
+        let c = FieldElement::new(Integer::from(6), Integer::from(13));
+        let d = FieldElement::new(Integer::from(5), Integer::from(13));
 
-        assert_eq!(c - b, a);
+        assert_eq!(c - b.clone(), a);
         assert_eq!(b - a, d);
     }
 
@@ -120,9 +143,9 @@ mod test {
     fn test_field_element_mul() {
         use super::FieldElement;
 
-        let a = FieldElement::new(3, 13);
-        let b = FieldElement::new(12, 13);
-        let c = FieldElement::new(10, 13);
+        let a = FieldElement::new(Integer::from(3), Integer::from(13));
+        let b = FieldElement::new(Integer::from(12), Integer::from(13));
+        let c = FieldElement::new(Integer::from(10), Integer::from(13));
 
         assert_eq!(a * b, c);
     }
@@ -131,9 +154,20 @@ mod test {
     fn test_field_element_pow() {
         use super::FieldElement;
 
-        let a = FieldElement::new(3, 13);
-        let b = FieldElement::new(1, 13);
+        let a = FieldElement::new(Integer::from(3), Integer::from(13));
+        let b = FieldElement::new(Integer::from(1), Integer::from(13));
 
-        assert!(a.pow(3) == b);
+        assert!(a.pow(Integer::from(3), a.prime.clone()) == b);
+    }
+
+    #[test]
+    fn test_field_element_div() {
+        use super::FieldElement;
+
+        let a = FieldElement::new(Integer::from(3), Integer::from(31));
+        let b = FieldElement::new(Integer::from(24), Integer::from(31));
+        let c = FieldElement::new(Integer::from(4), Integer::from(31));
+
+        assert_eq!(a / b, c);
     }
 }
