@@ -2,10 +2,10 @@ use rug::{ops::Pow, Integer};
 
 #[derive(PartialEq, Debug, Clone)]
 struct Point {
-    a: Integer,
-    b: Integer,
     x: Integer,
     y: Integer,
+    a: Integer,
+    b: Integer,
 }
 
 impl Point {
