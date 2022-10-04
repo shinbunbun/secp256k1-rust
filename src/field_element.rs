@@ -1,4 +1,4 @@
-use rug::{ops::Pow, Integer};
+use rug::Integer;
 use std::ops::{Add, Div, Mul, Sub};
 
 #[derive(PartialEq, Debug, Clone)]
