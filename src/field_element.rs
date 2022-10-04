@@ -16,6 +16,10 @@ impl FieldElement {
     }
 
     fn pow(&self, mut n: Integer, m: Integer) -> Self {
+        // 負の指数に対応
+        n %= m.clone() - 1;
+
+        // 繰り返し二乗法
         let mut ret = Integer::from(1);
         let mut x = self.num.clone();
         while n > 0 {
@@ -25,6 +29,7 @@ impl FieldElement {
             x = x.clone() * x.clone() % m.clone();
             n >>= 1;
         }
+
         Self {
             num: ret,
             prime: self.prime.clone(),
