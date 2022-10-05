@@ -72,12 +72,12 @@ impl Add for Point {
             return Self::new(Some(x3), Some(y3), self.a, self.b);
         }
 
-        Self {
-            x: None,
-            y: None,
-            a: self.a,
-            b: self.b,
-        }
+        // 同じ点の加算
+        let s = (Integer::from(3) * x1.clone().pow(2) + self.a.clone())
+            / (Integer::from(2) * y1.clone());
+        let x3 = s.clone().pow(2) - Integer::from(2) * x1.clone();
+        let y3 = s * (x1 - x3.clone()) - y1;
+        Self::new(Some(x3), Some(y3), self.a, self.b)
     }
 }
 
@@ -148,9 +148,16 @@ mod test {
             Integer::from(5),
             Integer::from(7),
         );
+        let p6 = Point::new(
+            Some(Integer::from(18)),
+            Some(Integer::from(77)),
+            Integer::from(5),
+            Integer::from(7),
+        );
 
         assert_eq!(p1.clone() + p2.clone(), p2);
         assert_eq!(p2.clone() + p3, p1);
-        assert_eq!(p2 + p4, p5);
+        assert_eq!(p2.clone() + p4, p5);
+        assert_eq!(p2.clone() + p2, p6)
     }
 }
