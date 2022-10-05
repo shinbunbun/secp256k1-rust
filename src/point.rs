@@ -49,14 +49,27 @@ impl Add for Point {
             return self;
         }
 
+        let x1 = self.x.clone().unwrap();
+        let y1 = self.y.clone().unwrap();
+        let x2 = other.x.clone().unwrap();
+        let y2 = other.y.clone().unwrap();
+
         // 加法逆元との加算
-        if self.x == other.x && self.y != other.y {
+        if x1 == x2 && y1 != y2 {
             return Self {
                 x: None,
                 y: None,
                 a: self.a,
                 b: self.b,
             };
+        }
+
+        // 異なる点の加算
+        if self != other {
+            let s = (y2 - y1.clone()) / (x2.clone() - x1.clone());
+            let x3 = s.clone().pow(2) - x1.clone() - x2;
+            let y3 = s * (x1 - x3.clone()) - y1;
+            return Self::new(Some(x3), Some(y3), self.a, self.b);
         }
 
         Self {
@@ -123,8 +136,21 @@ mod test {
             Integer::from(5),
             Integer::from(7),
         );
+        let p4 = Point::new(
+            Some(Integer::from(2)),
+            Some(Integer::from(5)),
+            Integer::from(5),
+            Integer::from(7),
+        );
+        let p5 = Point::new(
+            Some(Integer::from(3)),
+            Some(Integer::from(-7)),
+            Integer::from(5),
+            Integer::from(7),
+        );
 
         assert_eq!(p1.clone() + p2.clone(), p2);
-        assert_eq!(p2 + p3, p1)
+        assert_eq!(p2.clone() + p3, p1);
+        assert_eq!(p2 + p4, p5);
     }
 }
