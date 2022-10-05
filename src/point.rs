@@ -41,11 +41,22 @@ impl Add for Point {
             panic!("Points {:?}, {:?} are not on the same curve", self, other);
         }
 
+        // 加法単位元との加算
         if self.x.is_none() {
             return other;
         }
         if other.x.is_none() {
             return self;
+        }
+
+        // 加法逆元との加算
+        if self.x == other.x && self.y != other.y {
+            return Self {
+                x: None,
+                y: None,
+                a: self.a,
+                b: self.b,
+            };
         }
 
         Self {
@@ -106,7 +117,14 @@ mod test {
             Integer::from(5),
             Integer::from(7),
         );
+        let p3 = Point::new(
+            Some(Integer::from(-1)),
+            Some(Integer::from(1)),
+            Integer::from(5),
+            Integer::from(7),
+        );
 
-        assert_eq!(p1 + p2.clone(), p2);
+        assert_eq!(p1.clone() + p2.clone(), p2);
+        assert_eq!(p2 + p3, p1)
     }
 }
