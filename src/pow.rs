@@ -15,9 +15,6 @@ impl Pow<u32> for i32 {
 
         let m = m.unwrap();
 
-        // 負の指数に対応
-        n %= m - 1;
-
         // 繰り返し二乗法
         let mut ret = 1;
         let mut x = *self;
