@@ -26,7 +26,8 @@ where
         + RemAssign
         + BitAnd<Output = T>
         + Rem<Output = T>
-        + ShrAssign<i32>,
+        + ShrAssign<i32>
+        + Add<Output = T>,
 {
     num: T,
     prime: T,
@@ -48,7 +49,8 @@ where
         + RemAssign
         + BitAnd<Output = T>
         + Rem<Output = T>
-        + ShrAssign<i32>,
+        + ShrAssign<i32>
+        + Add<Output = T>,
 {
     pub fn new(num: T, prime: T) -> Self {
         if num >= prime {
@@ -78,7 +80,8 @@ where
         + RemAssign
         + BitAnd<Output = T>
         + Rem<Output = T>
-        + ShrAssign<i32>,
+        + ShrAssign<i32>
+        + Add<Output = T>,
 {
     fn pow(&self, mut n: T, m: Option<T>) -> Self {
         // 繰り返し二乗法を使わない場合
@@ -123,9 +126,24 @@ where
     }
 }
 
-/* impl<T> Add for FieldElement<T>
+impl<T> Add for FieldElement<T>
 where
-    T: PartialEq + PartialOrd + Debug + Div<Output = T>,
+    T: PartialEq
+        + PartialOrd
+        + Debug
+        + Sub<Output = T>
+        + From<i32>
+        + Clone
+        + DivAssign
+        + MulAssign
+        + Mul<Output = T>
+        + AddAssign
+        + SubAssign
+        + RemAssign
+        + BitAnd<Output = T>
+        + Rem<Output = T>
+        + ShrAssign<i32>
+        + Add<Output = T>,
 {
     type Output = Self;
 
@@ -142,7 +160,22 @@ where
 
 impl<T> Sub for FieldElement<T>
 where
-    T: PartialEq + PartialOrd + Debug + Div<Output = T>,
+    T: PartialEq
+        + PartialOrd
+        + Debug
+        + Sub<Output = T>
+        + From<i32>
+        + Clone
+        + DivAssign
+        + MulAssign
+        + Mul<Output = T>
+        + AddAssign
+        + SubAssign
+        + RemAssign
+        + BitAnd<Output = T>
+        + Rem<Output = T>
+        + ShrAssign<i32>
+        + Add<Output = T>,
 {
     type Output = Self;
 
@@ -164,7 +197,7 @@ where
     }
 }
 
-impl<T> Mul for FieldElement<T>
+/* impl<T> Mul for FieldElement<T>
 where
     T: PartialEq + PartialOrd + Debug + Div<Output = T>,
 {
@@ -228,7 +261,7 @@ mod test {
         assert_eq!(a.pow(Integer::from(-3), Some(a.prime.clone())), b);
     }
 
-    /* #[test]
+    #[test]
     fn test_field_element_add() {
         let a = FieldElement::new(Integer::from(7), Integer::from(13));
         let b = FieldElement::new(Integer::from(12), Integer::from(13));
@@ -248,7 +281,7 @@ mod test {
         assert_eq!(b - a, d);
     }
 
-    #[test]
+    /* #[test]
     fn test_field_element_mul() {
         let a = FieldElement::new(Integer::from(3), Integer::from(13));
         let b = FieldElement::new(Integer::from(12), Integer::from(13));
