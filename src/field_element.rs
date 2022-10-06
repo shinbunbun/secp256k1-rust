@@ -268,26 +268,37 @@ mod test {
     fn test_field_element_derive() {
         let a = FieldElement::new(Integer::from(7), Integer::from(13));
         let b = FieldElement::new(Integer::from(6), Integer::from(13));
+        let c = FieldElement::new(7, 13);
+        let d = FieldElement::new(6, 13);
 
         // test PartialEq
-        assert!(!(a == b));
+        assert_ne!(a, b);
+        assert_ne!(c, d);
         assert!(a == a);
+        assert!(c == c);
 
         // test Debug
         assert_eq!(format!("{:?}", a), "FieldElement { num: 7, prime: 13 }");
 
         // test Clone
-        let d = a.clone();
-        assert_eq!(a, d);
+        let e = a.clone();
+        let f = c.clone();
+
+        assert_eq!(a, e);
+        assert_eq!(c, f);
     }
 
     #[test]
     fn test_field_element_pow() {
         let a = FieldElement::new(Integer::from(4), Integer::from(13));
         let b = FieldElement::new(Integer::from(12), Integer::from(13));
+        let c = FieldElement::new(4, 13);
+        let d = FieldElement::new(12, 13);
 
         assert_eq!(a.pow(Integer::from(3), Some(a.prime.clone())), b);
         assert_eq!(a.pow(Integer::from(-3), Some(a.prime.clone())), b);
+        assert_eq!(c.pow(3, Some(c.prime.clone())), d);
+        assert_eq!(c.pow(-3, Some(c.prime.clone())), d);
     }
 
     #[test]
@@ -295,8 +306,12 @@ mod test {
         let a = FieldElement::new(Integer::from(7), Integer::from(13));
         let b = FieldElement::new(Integer::from(12), Integer::from(13));
         let c = FieldElement::new(Integer::from(6), Integer::from(13));
+        let d = FieldElement::new(7, 13);
+        let e = FieldElement::new(12, 13);
+        let f = FieldElement::new(6, 13);
 
         assert_eq!(a + b, c);
+        assert_eq!(d + e, f);
     }
 
     #[test]
@@ -305,9 +320,15 @@ mod test {
         let b = FieldElement::new(Integer::from(12), Integer::from(13));
         let c = FieldElement::new(Integer::from(6), Integer::from(13));
         let d = FieldElement::new(Integer::from(5), Integer::from(13));
+        let e = FieldElement::new(7, 13);
+        let f = FieldElement::new(12, 13);
+        let g = FieldElement::new(6, 13);
+        let h = FieldElement::new(5, 13);
 
         assert_eq!(c - b.clone(), a);
         assert_eq!(b - a, d);
+        assert_eq!(g - f.clone(), e);
+        assert_eq!(f - e, h);
     }
 
     #[test]
@@ -315,8 +336,12 @@ mod test {
         let a = FieldElement::new(Integer::from(3), Integer::from(13));
         let b = FieldElement::new(Integer::from(12), Integer::from(13));
         let c = FieldElement::new(Integer::from(10), Integer::from(13));
+        let d = FieldElement::new(3, 13);
+        let e = FieldElement::new(12, 13);
+        let f = FieldElement::new(10, 13);
 
         assert_eq!(a * b, c);
+        assert_eq!(d * e, f);
     }
 
     #[test]
@@ -324,7 +349,11 @@ mod test {
         let a = FieldElement::new(Integer::from(3), Integer::from(31));
         let b = FieldElement::new(Integer::from(24), Integer::from(31));
         let c = FieldElement::new(Integer::from(4), Integer::from(31));
+        let d = FieldElement::new(3, 31);
+        let e = FieldElement::new(24, 31);
+        let f = FieldElement::new(4, 31);
 
         assert_eq!(a / b, c);
+        assert_eq!(d / e, f);
     }
 }
