@@ -1,29 +1,113 @@
 use rug::Integer;
-use std::ops::{Add, Div, Mul, Sub};
+use std::{
+    fmt::Debug,
+    ops::{
+        Add, AddAssign, BitAnd, Div, DivAssign, Mul, MulAssign, Rem, RemAssign, ShrAssign, Sub,
+        SubAssign,
+    },
+};
+
+use crate::pow::Pow;
 
 #[derive(PartialEq, Debug, Clone)]
-struct FieldElement {
-    num: Integer,
-    prime: Integer,
+pub struct FieldElement<T>
+where
+    T: PartialEq
+        + PartialOrd
+        + Debug
+        + Sub<Output = T>
+        + From<i32>
+        + Clone
+        + DivAssign
+        + MulAssign
+        + Mul<Output = T>
+        + AddAssign
+        + SubAssign
+        + RemAssign
+        + BitAnd<Output = T>
+        + Rem<Output = T>
+        + ShrAssign<i32>,
+{
+    num: T,
+    prime: T,
 }
 
-impl FieldElement {
-    fn new(num: Integer, prime: Integer) -> Self {
+impl<T> FieldElement<T>
+where
+    T: PartialEq
+        + PartialOrd
+        + Debug
+        + Sub<Output = T>
+        + From<i32>
+        + Clone
+        + DivAssign
+        + MulAssign
+        + Mul<Output = T>
+        + AddAssign
+        + SubAssign
+        + RemAssign
+        + BitAnd<Output = T>
+        + Rem<Output = T>
+        + ShrAssign<i32>,
+{
+    pub fn new(num: T, prime: T) -> Self {
         if num >= prime {
-            panic!("Num {} not in field range 0 to {}", num, prime - 1);
+            panic!(
+                "Num {:?} not in field range 0 to {:?}",
+                num,
+                prime - 1.into()
+            );
         }
         Self { num, prime }
     }
+}
 
-    fn pow(&self, mut n: Integer, m: Integer) -> Self {
+impl<T> Pow<T> for FieldElement<T>
+where
+    T: PartialEq
+        + PartialOrd
+        + Debug
+        + Sub<Output = T>
+        + From<i32>
+        + Clone
+        + DivAssign
+        + MulAssign
+        + Mul<Output = T>
+        + AddAssign
+        + SubAssign
+        + RemAssign
+        + BitAnd<Output = T>
+        + Rem<Output = T>
+        + ShrAssign<i32>,
+{
+    fn pow(&self, mut n: T, m: Option<T>) -> Self {
+        // 繰り返し二乗法を使わない場合
+        if m.is_none() {
+            let mut num = self.num.clone();
+            if n < 0.into() {
+                while n <= 0.into() {
+                    n += 1.into();
+                    num /= num.clone();
+                }
+            } else {
+                while n > 1.into() {
+                    n -= 1.into();
+                    num *= num.clone();
+                }
+            }
+            return Self::new(num, self.prime.clone());
+        }
+
+        let m = m.unwrap();
+
         // 負の指数に対応
-        n %= m.clone() - 1;
+        n %= m.clone() - 1.into();
 
         // 繰り返し二乗法
-        let mut ret = Integer::from(1);
+        let mut ret: T = 1.into();
         let mut x = self.num.clone();
-        while n > 0 {
-            if n.clone() & Integer::from(1) == 1 {
+        while n > 0.into() {
+            if n.clone() & 1.into() == 1.into() {
                 ret = ret * x.clone() % m.clone();
             }
             x = x.clone() * x.clone() % m.clone();
@@ -37,7 +121,10 @@ impl FieldElement {
     }
 }
 
-impl Add for FieldElement {
+/* impl<T> Add for FieldElement<T>
+where
+    T: PartialEq + PartialOrd + Debug + Div<Output = T>,
+{
     type Output = Self;
 
     fn add(self, other: Self) -> Self {
@@ -51,7 +138,10 @@ impl Add for FieldElement {
     }
 }
 
-impl Sub for FieldElement {
+impl<T> Sub for FieldElement<T>
+where
+    T: PartialEq + PartialOrd + Debug + Div<Output = T>,
+{
     type Output = Self;
 
     fn sub(self, other: Self) -> Self::Output {
@@ -72,7 +162,10 @@ impl Sub for FieldElement {
     }
 }
 
-impl Mul for FieldElement {
+impl<T> Mul for FieldElement<T>
+where
+    T: PartialEq + PartialOrd + Debug + Div<Output = T>,
+{
     type Output = Self;
 
     fn mul(self, other: Self) -> Self::Output {
@@ -86,19 +179,24 @@ impl Mul for FieldElement {
     }
 }
 
-impl Div for FieldElement {
+impl<T> Div for FieldElement<T>
+where
+    T: PartialEq + PartialOrd + Debug + Div<Output = T>,
+{
     type Output = Self;
 
     fn div(self, other: Self) -> Self::Output {
         if self.prime != other.prime {
             panic!("Cannot divide two numbers in different Fields");
         }
-        self.clone() * other.pow(self.prime.clone() - Integer::from(2), self.prime)
+        self.clone() * other.pow(self.prime.clone() - Integer::from(2), Some(self.prime))
     }
-}
+} */
 
 #[cfg(test)]
 mod test {
+    use crate::pow::Pow;
+
     use super::FieldElement;
     use rug::Integer;
 
@@ -120,6 +218,14 @@ mod test {
     }
 
     #[test]
+    fn test_field_element_pow() {
+        let a = FieldElement::new(Integer::from(4), Integer::from(13));
+        let b = FieldElement::new(Integer::from(12), Integer::from(13));
+
+        assert_eq!(a.pow(Integer::from(3), Some(a.prime.clone())), b);
+    }
+
+    /* #[test]
     fn test_field_element_add() {
         let a = FieldElement::new(Integer::from(7), Integer::from(13));
         let b = FieldElement::new(Integer::from(12), Integer::from(13));
@@ -153,7 +259,7 @@ mod test {
         let a = FieldElement::new(Integer::from(3), Integer::from(13));
         let b = FieldElement::new(Integer::from(1), Integer::from(13));
 
-        assert!(a.pow(Integer::from(3), a.prime.clone()) == b);
+        assert!(a.pow(Integer::from(3), Some(a.prime.clone())) == b);
     }
 
     #[test]
@@ -163,5 +269,5 @@ mod test {
         let c = FieldElement::new(Integer::from(4), Integer::from(31));
 
         assert_eq!(a / b, c);
-    }
+    } */
 }

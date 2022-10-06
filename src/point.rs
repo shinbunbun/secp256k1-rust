@@ -1,17 +1,41 @@
-use std::ops::Add;
+use std::{
+    fmt::Debug,
+    marker::PhantomData,
+    ops::{Add, Div, Mul, Sub},
+};
 
-use rug::{ops::Pow, Integer};
+use crate::pow::Pow;
 
 #[derive(PartialEq, Debug, Clone)]
-struct Point {
-    x: Option<Integer>,
-    y: Option<Integer>,
-    a: Integer,
-    b: Integer,
+struct Point<T>
+where
+    T: Add<Output = T>
+        + Sub<Output = T>
+        + Mul<Output = T>
+        + Div<Output = T>
+        + PartialEq
+        + Clone
+        + Debug,
+{
+    x: Option<T>,
+    y: Option<T>,
+    a: T,
+    b: T,
 }
 
-impl Point {
-    fn new(x: Option<Integer>, y: Option<Integer>, a: Integer, b: Integer) -> Self {
+impl<T> Point<T>
+where
+    T: Add<Output = T>
+        + Sub<Output = T>
+        + Mul<Output = T>
+        + Div<Output = T>
+        + Pow<u32>
+        + PartialEq
+        + Clone
+        + Debug
+        + From<i32>,
+{
+    fn new(x: Option<T>, y: Option<T>, a: T, b: T) -> Self {
         if x.is_none() && y.is_none() {
             return Self {
                 x: None,
@@ -23,8 +47,10 @@ impl Point {
 
         if x.is_none()
             || y.is_none()
-            || y.clone().unwrap().pow(2)
-                != x.clone().unwrap().pow(3) + a.clone() * x.clone().unwrap() + b.clone()
+            || y.clone().unwrap().pow(2 as u32, None)
+                != x.clone().unwrap().pow(3 as u32, None)
+                    + a.clone() * x.clone().unwrap()
+                    + b.clone()
         {
             panic!("({:?}, {:?}) is not on the curve", x, y);
         }
@@ -33,7 +59,18 @@ impl Point {
     }
 }
 
-impl Add for Point {
+impl<T> Add for Point<T>
+where
+    T: Add<Output = T>
+        + Sub<Output = T>
+        + Mul<Output = T>
+        + Div<Output = T>
+        + Pow<u32>
+        + PartialEq
+        + Clone
+        + Debug
+        + From<i32>,
+{
     type Output = Self;
 
     fn add(self, other: Self) -> Self {
@@ -67,15 +104,15 @@ impl Add for Point {
         // 異なる点の加算
         if self != other {
             let s = (y2 - y1.clone()) / (x2.clone() - x1.clone());
-            let x3 = s.clone().pow(2) - x1.clone() - x2;
+            let x3 = s.clone().pow(2 as u32, None) - x1.clone() - x2;
             let y3 = s * (x1 - x3.clone()) - y1;
             return Self::new(Some(x3), Some(y3), self.a, self.b);
         }
 
         // 同じ点の加算
-        let s = (Integer::from(3) * x1.clone().pow(2) + self.a.clone())
-            / (Integer::from(2) * y1.clone());
-        let x3 = s.clone().pow(2) - Integer::from(2) * x1.clone();
+        let s = (x1.clone().pow(2 as u32, None) * 3.into() + self.a.clone())
+            / (T::from(2) * y1.clone());
+        let x3 = s.clone().pow(2 as u32, None) - T::from(2) * x1.clone();
         let y3 = s * (x1 - x3.clone()) - y1;
         Self::new(Some(x3), Some(y3), self.a, self.b)
     }
@@ -85,27 +122,13 @@ mod test {
     use rug::Integer;
 
     use super::Point;
+    use crate::field_element::FieldElement;
 
     #[test]
     fn test_point_derive() {
-        let p1 = Point::new(
-            Some(Integer::from(-1)),
-            Some(Integer::from(-1)),
-            Integer::from(5),
-            Integer::from(7),
-        );
-        let p2 = Point::new(
-            Some(Integer::from(-1)),
-            Some(Integer::from(-1)),
-            Integer::from(5),
-            Integer::from(7),
-        );
-        let p3 = Point::new(
-            Some(Integer::from(-1)),
-            Some(Integer::from(1)),
-            Integer::from(5),
-            Integer::from(7),
-        );
+        let p1: Point<i32> = Point::new(Some(-1), Some(-1), 5, 7);
+        let p2 = Point::new(Some(-1), Some(-1), 5, 7);
+        let p3 = Point::new(Some(-1), Some(1), 5, 7);
 
         // test PartialEq
         assert_eq!(p1, p2);
@@ -123,41 +146,27 @@ mod test {
 
     #[test]
     fn test_point_add() {
-        let p1 = Point::new(None, None, Integer::from(5), Integer::from(7));
-        let p2 = Point::new(
-            Some(Integer::from(-1)),
-            Some(Integer::from(-1)),
-            Integer::from(5),
-            Integer::from(7),
-        );
-        let p3 = Point::new(
-            Some(Integer::from(-1)),
-            Some(Integer::from(1)),
-            Integer::from(5),
-            Integer::from(7),
-        );
-        let p4 = Point::new(
-            Some(Integer::from(2)),
-            Some(Integer::from(5)),
-            Integer::from(5),
-            Integer::from(7),
-        );
-        let p5 = Point::new(
-            Some(Integer::from(3)),
-            Some(Integer::from(-7)),
-            Integer::from(5),
-            Integer::from(7),
-        );
-        let p6 = Point::new(
-            Some(Integer::from(18)),
-            Some(Integer::from(77)),
-            Integer::from(5),
-            Integer::from(7),
-        );
+        let p1 = Point::new(None, None, 5, 7);
+        let p2 = Point::new(Some(-1), Some(-1), 5, 7);
+        let p3 = Point::new(Some(-1), Some(1), 5, 7);
+        let p4 = Point::new(Some(2), Some(5), 5, 7);
+        let p5 = Point::new(Some(3), Some(-7), 5, 7);
+        let p6 = Point::new(Some(18), Some(77), 5, 7);
 
         assert_eq!(p1.clone() + p2.clone(), p2);
         assert_eq!(p2.clone() + p3, p1);
         assert_eq!(p2.clone() + p4, p5);
         assert_eq!(p2.clone() + p2, p6)
     }
+
+    /* #[test]
+    fn field_element_point_unit() {
+        let a = FieldElement::new(Integer::from(0), Integer::from(223));
+        let b = FieldElement::new(Integer::from(7), Integer::from(223));
+        let x = FieldElement::new(Integer::from(192), Integer::from(223));
+        let y = FieldElement::new(Integer::from(105), Integer::from(223));
+
+        let p1 = Point::new(Some(x), Some(y), a, b);
+        println!("{:?}", p1);
+    } */
 }
