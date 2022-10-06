@@ -229,9 +229,24 @@ where
     }
 }
 
-/* impl<T> Div for FieldElement<T>
+impl<T> Div for FieldElement<T>
 where
-    T: PartialEq + PartialOrd + Debug + Div<Output = T>,
+    T: PartialEq
+        + PartialOrd
+        + Debug
+        + Sub<Output = T>
+        + From<i32>
+        + Clone
+        + DivAssign
+        + MulAssign
+        + Mul<Output = T>
+        + AddAssign
+        + SubAssign
+        + RemAssign
+        + BitAnd<Output = T>
+        + Rem<Output = T>
+        + ShrAssign<i32>
+        + Add<Output = T>,
 {
     type Output = Self;
 
@@ -239,9 +254,9 @@ where
         if self.prime != other.prime {
             panic!("Cannot divide two numbers in different Fields");
         }
-        self.clone() * other.pow(self.prime.clone() - Integer::from(2), Some(self.prime))
+        self.clone() * other.pow(self.prime.clone() - 2.into(), Some(self.prime))
     }
-} */
+}
 
 #[cfg(test)]
 mod test {
@@ -305,12 +320,12 @@ mod test {
         assert_eq!(a * b, c);
     }
 
-    /* #[test]
+    #[test]
     fn test_field_element_div() {
         let a = FieldElement::new(Integer::from(3), Integer::from(31));
         let b = FieldElement::new(Integer::from(24), Integer::from(31));
         let c = FieldElement::new(Integer::from(4), Integer::from(31));
 
         assert_eq!(a / b, c);
-    } */
+    }
 }
