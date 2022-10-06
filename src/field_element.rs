@@ -1,4 +1,3 @@
-use rug::Integer;
 use std::{
     fmt::Debug,
     ops::{
@@ -9,7 +8,7 @@ use std::{
 
 use crate::pow::Pow;
 
-#[derive(PartialEq, Debug, Clone)]
+#[derive(PartialEq, Eq, Debug, Clone)]
 pub struct FieldElement<T>
 where
     T: PartialEq
