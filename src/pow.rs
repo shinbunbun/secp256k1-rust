@@ -29,6 +29,34 @@ impl Pow<u32> for i32 {
     }
 }
 
+impl Pow<i32> for i32 {
+    fn pow(&self, mut n: i32, m: Option<i32>) -> Self {
+        /*  if m.is_none() {
+            let mut num = *self;
+            while n > 1 {
+                n -= 1;
+                num *= self;
+            }
+            return num;
+        }
+
+        let m = m.unwrap();
+
+        // 繰り返し二乗法
+        let mut ret = 1;
+        let mut x = *self;
+        while n > 0 {
+            if n & 1 == 1 {
+                ret = ret * x % m as i32;
+            }
+            x = x * x % m as i32;
+            n >>= 1;
+        }
+        ret */
+        todo!()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

@@ -29,7 +29,7 @@ where
         + Sub<Output = T>
         + Mul<Output = T>
         + Div<Output = T>
-        + Pow<u32>
+        + Pow<T>
         + PartialEq
         + Clone
         + Debug
@@ -47,8 +47,8 @@ where
 
         if x.is_none()
             || y.is_none()
-            || y.clone().unwrap().pow(2 as u32, None)
-                != x.clone().unwrap().pow(3 as u32, None)
+            || y.clone().unwrap().pow(2.into(), None)
+                != x.clone().unwrap().pow(3.into(), None)
                     + a.clone() * x.clone().unwrap()
                     + b.clone()
         {
@@ -159,7 +159,7 @@ mod test {
         assert_eq!(p2.clone() + p2, p6)
     }
 
-    /* #[test]
+    #[test]
     fn field_element_point_unit() {
         let a = FieldElement::new(Integer::from(0), Integer::from(223));
         let b = FieldElement::new(Integer::from(7), Integer::from(223));
@@ -168,5 +168,5 @@ mod test {
 
         let p1 = Point::new(Some(x), Some(y), a, b);
         println!("{:?}", p1);
-    } */
+    }
 }
