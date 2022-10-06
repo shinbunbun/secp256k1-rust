@@ -82,7 +82,7 @@ where
 {
     fn pow(&self, mut n: T, m: Option<T>) -> Self {
         // 繰り返し二乗法を使わない場合
-        if m.is_none() {
+        /* if m.is_none() {
             let mut num = self.num.clone();
             if n < 0.into() {
                 while n <= 0.into() {
@@ -96,12 +96,14 @@ where
                 }
             }
             return Self::new(num, self.prime.clone());
-        }
+        } */
 
         let m = m.unwrap();
 
         // 負の指数に対応
-        n %= m.clone() - 1.into();
+        if n < 0.into() {
+            n = (m.clone() - 2.into()) * (n.clone() * (-1).into());
+        }
 
         // 繰り返し二乗法
         let mut ret: T = 1.into();
@@ -223,6 +225,7 @@ mod test {
         let b = FieldElement::new(Integer::from(12), Integer::from(13));
 
         assert_eq!(a.pow(Integer::from(3), Some(a.prime.clone())), b);
+        assert_eq!(a.pow(Integer::from(-3), Some(a.prime.clone())), b);
     }
 
     /* #[test]
