@@ -6,6 +6,8 @@ use std::{
     },
 };
 
+use rug::ops::Pow;
+
 use crate::pow::PowMod;
 
 #[derive(PartialEq, Eq, Debug, Clone)]
@@ -60,6 +62,33 @@ where
             );
         }
         Self { num, prime }
+    }
+}
+
+impl<T, U> Pow<U> for FieldElement<T>
+where
+    T: PartialEq
+        + PartialOrd
+        + Debug
+        + Sub<Output = T>
+        + From<i32>
+        + Clone
+        + DivAssign
+        + MulAssign
+        + Mul<Output = T>
+        + AddAssign
+        + SubAssign
+        + RemAssign
+        + BitAnd<Output = T>
+        + Rem<Output = T>
+        + ShrAssign<i32>
+        + Add<Output = T>,
+    U: Into<T>,
+{
+    type Output = Self;
+
+    fn pow(self, exp: U) -> Self::Output {
+        self.pow_mod(exp.into(), self.prime.clone())
     }
 }
 
@@ -235,6 +264,32 @@ where
             panic!("Cannot divide two numbers in different Fields");
         }
         self.clone() * other.pow_mod(self.prime.clone() - 2.into(), self.prime)
+    }
+}
+
+impl<T> Mul<i32> for FieldElement<T>
+where
+    T: PartialEq
+        + PartialOrd
+        + Debug
+        + Sub<Output = T>
+        + From<i32>
+        + Clone
+        + DivAssign
+        + MulAssign
+        + Mul<Output = T>
+        + AddAssign
+        + SubAssign
+        + RemAssign
+        + BitAnd<Output = T>
+        + Rem<Output = T>
+        + ShrAssign<i32>
+        + Add<Output = T>,
+{
+    type Output = Self;
+
+    fn mul(self, other: i32) -> Self::Output {
+        self.clone() * Self::new(other.into(), self.prime)
     }
 }
 
