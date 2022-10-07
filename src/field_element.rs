@@ -6,7 +6,7 @@ use std::{
     },
 };
 
-use crate::pow::Pow;
+use crate::pow::PowMod;
 
 #[derive(PartialEq, Eq, Debug, Clone)]
 pub struct FieldElement<T>
@@ -63,7 +63,7 @@ where
     }
 }
 
-impl<T> Pow<T> for FieldElement<T>
+impl<T> PowMod<T> for FieldElement<T>
 where
     T: PartialEq
         + PartialOrd
@@ -82,26 +82,7 @@ where
         + ShrAssign<i32>
         + Add<Output = T>,
 {
-    fn pow(&self, mut n: T, m: Option<T>) -> Self {
-        // 繰り返し二乗法を使わない場合
-        /* if m.is_none() {
-            let mut num = self.num.clone();
-            if n < 0.into() {
-                while n <= 0.into() {
-                    n += 1.into();
-                    num /= num.clone();
-                }
-            } else {
-                while n > 1.into() {
-                    n -= 1.into();
-                    num *= num.clone();
-                }
-            }
-            return Self::new(num, self.prime.clone());
-        } */
-
-        let m = m.unwrap();
-
+    fn pow_mod(&self, mut n: T, m: T) -> Self {
         // 負の指数に対応
         if n < 0.into() {
             n = (m.clone() - 2.into()) * (n.clone() * (-1).into());
@@ -253,13 +234,14 @@ where
         if self.prime != other.prime {
             panic!("Cannot divide two numbers in different Fields");
         }
-        self.clone() * other.pow(self.prime.clone() - 2.into(), Some(self.prime))
+        self.clone() * other.pow_mod(self.prime.clone() - 2.into(), self.prime)
     }
 }
 
 #[cfg(test)]
 mod test {
-    use crate::pow::Pow;
+
+    use crate::pow::PowMod;
 
     use super::FieldElement;
     use rug::Integer;
@@ -295,10 +277,10 @@ mod test {
         let c = FieldElement::new(4, 13);
         let d = FieldElement::new(12, 13);
 
-        assert_eq!(a.pow(Integer::from(3), Some(a.prime.clone())), b);
-        assert_eq!(a.pow(Integer::from(-3), Some(a.prime.clone())), b);
-        assert_eq!(c.pow(3, Some(c.prime.clone())), d);
-        assert_eq!(c.pow(-3, Some(c.prime.clone())), d);
+        assert_eq!(a.pow_mod(Integer::from(3), a.prime.clone()), b);
+        assert_eq!(a.pow_mod(Integer::from(-3), a.prime.clone()), b);
+        assert_eq!(c.pow_mod(3, c.prime.clone()), d);
+        assert_eq!(c.pow_mod(-3, c.prime.clone()), d);
     }
 
     #[test]

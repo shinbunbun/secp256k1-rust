@@ -1,10 +1,10 @@
-use std::{
+/* use std::{
     fmt::Debug,
     marker::PhantomData,
     ops::{Add, Div, Mul, Sub},
 };
 
-use crate::pow::Pow;
+use crate::pow::PowMod;
 
 #[derive(PartialEq, Debug, Clone)]
 struct Point<T>
@@ -29,7 +29,7 @@ where
         + Sub<Output = T>
         + Mul<Output = T>
         + Div<Output = T>
-        + Pow<T>
+        + PowMod<T>
         + PartialEq
         + Clone
         + Debug
@@ -65,7 +65,7 @@ where
         + Sub<Output = T>
         + Mul<Output = T>
         + Div<Output = T>
-        + Pow<u32>
+        + PowMod<u32>
         + PartialEq
         + Clone
         + Debug
@@ -170,3 +170,4 @@ mod test {
         println!("{:?}", p1);
     }
 }
+ */

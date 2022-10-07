@@ -1,20 +1,9 @@
-pub trait Pow<T> {
-    fn pow(&self, n: T, m: Option<T>) -> Self;
+pub trait PowMod<T> {
+    fn pow_mod(&self, n: T, m: T) -> Self;
 }
 
-impl Pow<u32> for i32 {
-    fn pow(&self, mut n: u32, m: Option<u32>) -> Self {
-        if m.is_none() {
-            let mut num = *self;
-            while n > 1 {
-                n -= 1;
-                num *= self;
-            }
-            return num;
-        }
-
-        let m = m.unwrap();
-
+impl PowMod<u32> for i32 {
+    fn pow_mod(&self, mut n: u32, m: u32) -> Self {
         // 繰り返し二乗法
         let mut ret = 1;
         let mut x = *self;
@@ -29,8 +18,8 @@ impl Pow<u32> for i32 {
     }
 }
 
-impl Pow<i32> for i32 {
-    fn pow(&self, mut n: i32, m: Option<i32>) -> Self {
+impl PowMod<i32> for i32 {
+    fn pow_mod(&self, mut n: i32, m: i32) -> Self {
         /*  if m.is_none() {
             let mut num = *self;
             while n > 1 {
@@ -63,7 +52,6 @@ mod tests {
 
     #[test]
     fn test_pow_u32() {
-        assert_eq!(2.pow(3, None), 8);
-        assert_eq!(2.pow(3, Some(5)), 3);
+        assert_eq!(2.pow_mod(3_u32, 5_u32), 3);
     }
 }
