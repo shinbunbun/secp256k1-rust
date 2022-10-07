@@ -6,15 +6,17 @@ use std::{
 use rug::ops::Pow;
 
 #[derive(PartialEq, Debug, Clone)]
-struct Point<T>
+pub struct Point<T>
 where
     T: Add<Output = T>
         + Sub<Output = T>
         + Mul<Output = T>
         + Div<Output = T>
+        + Pow<u32, Output = T>
         + PartialEq
         + Clone
-        + Debug,
+        + Debug
+        + Mul<i32, Output = T>,
 {
     x: Option<T>,
     y: Option<T>,
@@ -31,7 +33,8 @@ where
         + Pow<u32, Output = T>
         + PartialEq
         + Clone
-        + Debug,
+        + Debug
+        + Mul<i32, Output = T>,
 {
     fn new(x: Option<T>, y: Option<T>, a: T, b: T) -> Self {
         if x.is_none() && y.is_none() {
@@ -113,6 +116,35 @@ where
     }
 }
 
+impl<T> Mul<i32> for Point<T>
+where
+    T: Add<Output = T>
+        + Sub<Output = T>
+        + Mul<Output = T>
+        + Div<Output = T>
+        + Pow<u32, Output = T>
+        + PartialEq
+        + Clone
+        + Debug
+        + Mul<i32, Output = T>,
+{
+    type Output = Self;
+
+    fn mul(self, rhs: i32) -> Self::Output {
+        let mut coef = rhs;
+        let mut current = self.clone();
+        let mut result = Point::new(None, None, self.a, self.b);
+        while coef > 0 {
+            if coef & 1 == 1 {
+                result = result + current.clone();
+            }
+            current = current.clone() + current;
+            coef >>= 1;
+        }
+        result
+    }
+}
+
 mod test {
     use rug::Integer;
 
@@ -171,5 +203,18 @@ mod test {
 
         // add
         assert_eq!(p1 + p2, p3);
+    }
+
+    #[test]
+    fn scalar_multiplication() {
+        let a = FieldElement::new(Integer::from(0), Integer::from(223));
+        let b = FieldElement::new(Integer::from(7), Integer::from(223));
+        let x1 = FieldElement::new(Integer::from(47), Integer::from(223));
+        let y1 = FieldElement::new(Integer::from(71), Integer::from(223));
+        let y2 = FieldElement::new(Integer::from(152), Integer::from(223));
+        let p1 = Point::new(Some(x1.clone()), Some(y1), a.clone(), b.clone());
+        let p2 = Point::new(Some(x1), Some(y2), a, b);
+
+        assert_eq!(p1 * 20, p2);
     }
 }
