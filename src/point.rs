@@ -38,7 +38,7 @@ where
         + Debug
         + Mul<i32, Output = T>,
 {
-    fn new(x: Option<T>, y: Option<T>, a: T, b: T) -> Self {
+    pub fn new(x: Option<T>, y: Option<T>, a: T, b: T) -> Self {
         if x.is_none() && y.is_none() {
             return Self {
                 x: None,
