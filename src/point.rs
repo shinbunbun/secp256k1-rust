@@ -1,12 +1,13 @@
 use std::{
     fmt::Debug,
-    ops::{Add, Div, Mul, Sub},
+    marker::PhantomData,
+    ops::{Add, BitAnd, Div, Mul, ShrAssign, Sub},
 };
 
 use rug::ops::Pow;
 
 #[derive(PartialEq, Eq, Debug, Clone)]
-pub struct Point<T>
+pub struct Point<T, U>
 where
     T: Add<Output = T>
         + Sub<Output = T>
@@ -22,9 +23,10 @@ where
     y: Option<T>,
     a: T,
     b: T,
+    _maker: PhantomData<fn() -> U>,
 }
 
-impl<T> Point<T>
+impl<T, U> Point<T, U>
 where
     T: Add<Output = T>
         + Sub<Output = T>
@@ -43,6 +45,7 @@ where
                 y: None,
                 a,
                 b,
+                _maker: PhantomData,
             };
         }
 
@@ -54,11 +57,17 @@ where
             panic!("({:?}, {:?}) is not on the curve", x, y);
         }
 
-        Self { x, y, a, b }
+        Self {
+            x,
+            y,
+            a,
+            b,
+            _maker: PhantomData,
+        }
     }
 }
 
-impl<T> Add for Point<T>
+impl<T, U> Add for Point<T, U>
 where
     T: Add<Output = T>
         + Sub<Output = T>
@@ -69,6 +78,7 @@ where
         + Clone
         + Debug
         + Mul<i32, Output = T>,
+    U: Debug + PartialEq,
 {
     type Output = Self;
 
@@ -97,6 +107,7 @@ where
                 y: None,
                 a: self.a,
                 b: self.b,
+                _maker: PhantomData,
             };
         }
 
@@ -116,7 +127,7 @@ where
     }
 }
 
-impl<T> Mul<i32> for Point<T>
+impl<T, U> Mul<U> for Point<T, U>
 where
     T: Add<Output = T>
         + Sub<Output = T>
@@ -127,15 +138,16 @@ where
         + Clone
         + Debug
         + Mul<i32, Output = T>,
+    U: Debug + Clone + PartialEq + PartialOrd + From<i32> + BitAnd<Output = U> + ShrAssign<i32>,
 {
     type Output = Self;
 
-    fn mul(self, rhs: i32) -> Self::Output {
+    fn mul(self, rhs: U) -> Self::Output {
         let mut coef = rhs;
         let mut current = self.clone();
         let mut result = Point::new(None, None, self.a, self.b);
-        while coef > 0 {
-            if coef & 1 == 1 {
+        while coef > 0.into() {
+            if coef.clone() & 1.into() == 1.into() {
                 result = result + current.clone();
             }
             current = current.clone() + current;
@@ -153,9 +165,9 @@ mod test {
 
     #[test]
     fn test_point_derive() {
-        let p1: Point<i32> = Point::new(Some(-1), Some(-1), 5, 7);
-        let p2 = Point::new(Some(-1), Some(-1), 5, 7);
-        let p3 = Point::new(Some(-1), Some(1), 5, 7);
+        let p1: Point<i32, i32> = Point::new(Some(-1), Some(-1), 5, 7);
+        let p2: Point<i32, i32> = Point::new(Some(-1), Some(-1), 5, 7);
+        let p3: Point<i32, i32> = Point::new(Some(-1), Some(1), 5, 7);
 
         // test PartialEq
         assert_eq!(p1, p2);
@@ -173,12 +185,12 @@ mod test {
 
     #[test]
     fn test_point_add() {
-        let p1 = Point::new(None, None, 5, 7);
-        let p2 = Point::new(Some(-1), Some(-1), 5, 7);
-        let p3 = Point::new(Some(-1), Some(1), 5, 7);
-        let p4 = Point::new(Some(2), Some(5), 5, 7);
-        let p5 = Point::new(Some(3), Some(-7), 5, 7);
-        let p6 = Point::new(Some(18), Some(77), 5, 7);
+        let p1: Point<i32, i32> = Point::new(None, None, 5, 7);
+        let p2: Point<i32, i32> = Point::new(Some(-1), Some(-1), 5, 7);
+        let p3: Point<i32, i32> = Point::new(Some(-1), Some(1), 5, 7);
+        let p4: Point<i32, i32> = Point::new(Some(2), Some(5), 5, 7);
+        let p5: Point<i32, i32> = Point::new(Some(3), Some(-7), 5, 7);
+        let p6: Point<i32, i32> = Point::new(Some(18), Some(77), 5, 7);
 
         assert_eq!(p1.clone() + p2.clone(), p2);
         assert_eq!(p2.clone() + p3, p1);
@@ -197,9 +209,11 @@ mod test {
         let x3 = FieldElement::new(Integer::from(220), Integer::from(223));
         let y3 = FieldElement::new(Integer::from(181), Integer::from(223));
 
-        let p1 = Point::new(Some(x1), Some(y1), a.clone(), b.clone());
-        let p2 = Point::new(Some(x2), Some(y2), a.clone(), b.clone());
-        let p3 = Point::new(Some(x3), Some(y3), a, b);
+        let p1: Point<FieldElement<Integer>, Integer> =
+            Point::new(Some(x1), Some(y1), a.clone(), b.clone());
+        let p2: Point<FieldElement<Integer>, Integer> =
+            Point::new(Some(x2), Some(y2), a.clone(), b.clone());
+        let p3: Point<FieldElement<Integer>, Integer> = Point::new(Some(x3), Some(y3), a, b);
 
         // add
         assert_eq!(p1 + p2, p3);
@@ -212,9 +226,12 @@ mod test {
         let x1 = FieldElement::new(Integer::from(47), Integer::from(223));
         let y1 = FieldElement::new(Integer::from(71), Integer::from(223));
         let y2 = FieldElement::new(Integer::from(152), Integer::from(223));
-        let p1 = Point::new(Some(x1.clone()), Some(y1), a.clone(), b.clone());
-        let p2 = Point::new(Some(x1), Some(y2), a, b);
+        let p1 = Point::new(Some(x1.clone()), Some(y1.clone()), a.clone(), b.clone());
+        let p2 = Point::new(Some(x1.clone()), Some(y2.clone()), a.clone(), b.clone());
+        let p3 = Point::new(Some(x1.clone()), Some(y1), a.clone(), b.clone());
+        let p4 = Point::new(Some(x1), Some(y2), a, b);
 
         assert_eq!(p1 * 20, p2);
+        assert_eq!(p3 * Integer::from(20), p4);
     }
 }
