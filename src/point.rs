@@ -5,7 +5,7 @@ use std::{
 
 use rug::ops::Pow;
 
-#[derive(PartialEq, Debug, Clone)]
+#[derive(PartialEq, Eq, Debug, Clone)]
 pub struct Point<T>
 where
     T: Add<Output = T>
