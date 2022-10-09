@@ -7,18 +7,7 @@ use std::{
 use rug::ops::Pow;
 
 #[derive(PartialEq, Eq, Debug, Clone)]
-pub struct Point<T, U>
-where
-    T: Add<Output = T>
-        + Sub<Output = T>
-        + Mul<Output = T>
-        + Div<Output = T>
-        + Pow<u32, Output = T>
-        + PartialEq
-        + Clone
-        + Debug
-        + Mul<i32, Output = T>,
-{
+pub struct Point<T, U> {
     pub x: Option<T>,
     pub y: Option<T>,
     pub a: T,
@@ -28,15 +17,7 @@ where
 
 impl<T, U> Point<T, U>
 where
-    T: Add<Output = T>
-        + Sub<Output = T>
-        + Mul<Output = T>
-        + Div<Output = T>
-        + Pow<u32, Output = T>
-        + PartialEq
-        + Clone
-        + Debug
-        + Mul<i32, Output = T>,
+    T: Add<Output = T> + Mul<Output = T> + Pow<u32, Output = T> + PartialEq + Clone + Debug,
 {
     pub fn new(x: Option<T>, y: Option<T>, a: T, b: T) -> Self {
         if x.is_none() && y.is_none() {
@@ -180,7 +161,7 @@ mod test {
         );
 
         // test Clone
-        let _p4 = p1.clone();
+        let _p4 = p1;
     }
 
     #[test]
