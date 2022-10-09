@@ -43,18 +43,22 @@ impl Secp256k1 {
         }
         total.x.unwrap() == create_field_element(sig.r)
     }
-}
 
-pub fn sign(prv_key: &PrivateKey, z: Integer, k: Integer) -> Signature {
-    let n = get_n();
-    let g = get_g();
-    let r = (g * k.clone()).x.unwrap().num;
-    let k_inv = k.pow_mod(&(n.clone() - 2), &n).unwrap();
-    let mut s = (r.clone() * prv_key.secret.clone() + z) * k_inv % n.clone();
-    if s > n.clone() / 2 {
-        s = n - s
+    pub fn sign(&self, z: Integer, k: Integer) -> Signature {
+        if self.private_key.is_none() {
+            panic!("Private key is not set");
+        }
+
+        let n = get_n();
+        let g = get_g();
+        let r = (g * k.clone()).x.unwrap().num;
+        let k_inv = k.pow_mod(&(n.clone() - 2), &n).unwrap();
+        let mut s = (r.clone() * self.private_key.clone().unwrap().secret + z) * k_inv % n.clone();
+        if s > n.clone() / 2 {
+            s = n - s
+        }
+        Signature { r, s }
     }
-    Signature { r, s }
 }
 
 fn create_field_element(num: Integer) -> FieldElement<Integer> {
@@ -219,10 +223,9 @@ mod tests {
 
         let point = get_g() * secret.clone();
         let private_key = PrivateKey::new(secret, point);
-        let k = random::random(get_n());
-        let signature = sign(&private_key, message.clone(), k);
-
         let sec256 = Secp256k1::new(Some(private_key), None);
+        let k = random::random(get_n());
+        let signature = sec256.sign(message.clone(), k);
 
         assert!(sec256.verify(message, signature.clone()));
         assert!(!sec256.verify(message2, signature));
