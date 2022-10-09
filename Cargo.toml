@@ -7,3 +7,4 @@ edition = "2021"
 
 [dependencies]
 rug = "1.17.0"
+sha2 = "0.10.6"
