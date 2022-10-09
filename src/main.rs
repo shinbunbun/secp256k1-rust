@@ -1,4 +1,5 @@
 mod field_element;
+mod hash;
 mod point;
 mod pow;
 mod private_key;

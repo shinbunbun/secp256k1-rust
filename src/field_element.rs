@@ -30,8 +30,8 @@ where
         + ShrAssign<i32>
         + Add<Output = T>,
 {
-    num: T,
-    prime: T,
+    pub num: T,
+    pub prime: T,
 }
 
 impl<T> FieldElement<T>
