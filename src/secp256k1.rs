@@ -1,28 +1,8 @@
 use rug::{ops::Pow, Integer};
 
-use crate::{field_element::FieldElement, point::Point, signature::Signature};
-
-pub fn create_field_element(num: Integer) -> FieldElement<Integer> {
-    let p = Integer::from(2).pow(256) - Integer::from(2).pow(32) - Integer::from(977);
-    FieldElement::new(num, p)
-}
-
-pub fn create_point(
-    x: Option<FieldElement<Integer>>,
-    y: Option<FieldElement<Integer>>,
-) -> Point<FieldElement<Integer>, Integer> {
-    let a = create_field_element(Integer::from(0));
-    let b = create_field_element(Integer::from(7));
-    Point::new(x, y, a, b)
-}
-
-pub fn scalar_multiplication(
-    point: Point<FieldElement<Integer>, Integer>,
-    mut coefficient: Integer,
-) -> Point<FieldElement<Integer>, Integer> {
-    coefficient %= get_n();
-    point * coefficient
-}
+use crate::{
+    field_element::FieldElement, point::Point, private_key::PrivateKey, signature::Signature,
+};
 
 pub fn verify(point: Point<FieldElement<Integer>, Integer>, z: Integer, sig: Signature) -> bool {
     let n = get_n();
@@ -36,15 +16,41 @@ pub fn verify(point: Point<FieldElement<Integer>, Integer>, z: Integer, sig: Sig
     total.x.unwrap() == create_field_element(sig.r)
 }
 
-pub fn get_n() -> Integer {
-    Integer::from_str_radix(
-        "fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141",
-        16,
-    )
-    .unwrap()
+pub fn sign(prv_key: &PrivateKey, z: Integer, k: Integer) -> Signature {
+    let n = get_n();
+    let g = get_g();
+    let r = (g * k.clone()).x.unwrap().num;
+    let k_inv = k.pow_mod(&(n.clone() - 2), &n).unwrap();
+    let mut s = (r.clone() * prv_key.secret.clone() + z) * k_inv % n.clone();
+    if s > n.clone() / 2 {
+        s = n - s
+    }
+    Signature { r, s }
 }
 
-pub(crate) fn get_g() -> Point<FieldElement<Integer>, Integer> {
+fn create_field_element(num: Integer) -> FieldElement<Integer> {
+    let p = Integer::from(2).pow(256) - Integer::from(2).pow(32) - Integer::from(977);
+    FieldElement::new(num, p)
+}
+
+fn create_point(
+    x: Option<FieldElement<Integer>>,
+    y: Option<FieldElement<Integer>>,
+) -> Point<FieldElement<Integer>, Integer> {
+    let a = create_field_element(Integer::from(0));
+    let b = create_field_element(Integer::from(7));
+    Point::new(x, y, a, b)
+}
+
+fn scalar_multiplication(
+    point: Point<FieldElement<Integer>, Integer>,
+    mut coefficient: Integer,
+) -> Point<FieldElement<Integer>, Integer> {
+    coefficient %= get_n();
+    point * coefficient
+}
+
+fn get_g() -> Point<FieldElement<Integer>, Integer> {
     create_point(
         Some(create_field_element(
             Integer::from_str_radix(
@@ -63,8 +69,23 @@ pub(crate) fn get_g() -> Point<FieldElement<Integer>, Integer> {
     )
 }
 
+fn get_n() -> Integer {
+    Integer::from_str_radix(
+        "fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141",
+        16,
+    )
+    .unwrap()
+}
+
 #[cfg(test)]
 mod tests {
+    use rug::integer::Order;
+
+    use crate::{
+        hash::create_sha256_from_string,
+        random::{self, random},
+    };
+
     use super::*;
 
     #[test]
@@ -148,5 +169,33 @@ mod tests {
 
         assert!(verify(point.clone(), z1, Signature { r: r1, s: s1 }));
         assert!(verify(point, z2, Signature { r: r2, s: s2 }));
+    }
+
+    #[test]
+    fn test_sign() {
+        let secret = Integer::from_digits(
+            create_sha256_from_string("my secret").as_slice(),
+            Order::LsfBe,
+        );
+        let message = Integer::from_digits(
+            create_sha256_from_string("my message").as_slice(),
+            Order::LsfBe,
+        );
+        let message2 = Integer::from_digits(
+            create_sha256_from_string("my message2").as_slice(),
+            Order::LsfBe,
+        );
+
+        let point = get_g() * secret.clone();
+        let private_key = PrivateKey::new(secret, point);
+        let k = random::random(get_n());
+        let signature = sign(&private_key, message.clone(), k);
+
+        assert!(verify(
+            private_key.point.clone(),
+            message,
+            signature.clone()
+        ));
+        assert!(!verify(private_key.point, message2, signature));
     }
 }
