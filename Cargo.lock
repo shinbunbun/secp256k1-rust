@@ -93,6 +93,7 @@ name = "secp256k1-rust"
 version = "0.1.0"
 dependencies = [
  "rand",
+ "rand_chacha",
  "rug",
 ]
 
