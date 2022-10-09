@@ -37,11 +37,12 @@ impl Secp256k1 {
         let s_inv = sig.s.pow_mod(&(n.clone() - Integer::from(2)), &n).unwrap();
         let u = z * s_inv.clone() % &n;
         let v = sig.r.clone() * s_inv % &n;
-        let total = scalar_multiplication(get_g(), u) + scalar_multiplication(public_key, v);
+        let total = Secp256k1::scalar_multiplication(get_g(), u)
+            + Secp256k1::scalar_multiplication(public_key, v);
         if total.x.is_none() {
             panic!("Total is at infinity");
         }
-        total.x.unwrap() == create_field_element(sig.r)
+        total.x.unwrap() == Secp256k1::create_field_element(sig.r)
     }
 
     pub fn sign(&self, z: Integer, k: Integer) -> Signature {
@@ -59,40 +60,40 @@ impl Secp256k1 {
         }
         Signature { r, s }
     }
-}
 
-fn create_field_element(num: Integer) -> FieldElement<Integer> {
-    let p = Integer::from(2).pow(256) - Integer::from(2).pow(32) - Integer::from(977);
-    FieldElement::new(num, p)
-}
+    fn create_field_element(num: Integer) -> FieldElement<Integer> {
+        let p = Integer::from(2).pow(256) - Integer::from(2).pow(32) - Integer::from(977);
+        FieldElement::new(num, p)
+    }
 
-fn create_point(
-    x: Option<FieldElement<Integer>>,
-    y: Option<FieldElement<Integer>>,
-) -> Point<FieldElement<Integer>, Integer> {
-    let a = create_field_element(Integer::from(0));
-    let b = create_field_element(Integer::from(7));
-    Point::new(x, y, a, b)
-}
+    fn create_point(
+        x: Option<FieldElement<Integer>>,
+        y: Option<FieldElement<Integer>>,
+    ) -> Point<FieldElement<Integer>, Integer> {
+        let a = Secp256k1::create_field_element(Integer::from(0));
+        let b = Secp256k1::create_field_element(Integer::from(7));
+        Point::new(x, y, a, b)
+    }
 
-fn scalar_multiplication(
-    point: Point<FieldElement<Integer>, Integer>,
-    mut coefficient: Integer,
-) -> Point<FieldElement<Integer>, Integer> {
-    coefficient %= get_n();
-    point * coefficient
+    fn scalar_multiplication(
+        point: Point<FieldElement<Integer>, Integer>,
+        mut coefficient: Integer,
+    ) -> Point<FieldElement<Integer>, Integer> {
+        coefficient %= get_n();
+        point * coefficient
+    }
 }
 
 fn get_g() -> Point<FieldElement<Integer>, Integer> {
-    create_point(
-        Some(create_field_element(
+    Secp256k1::create_point(
+        Some(Secp256k1::create_field_element(
             Integer::from_str_radix(
                 "79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798",
                 16,
             )
             .unwrap(),
         )),
-        Some(create_field_element(
+        Some(Secp256k1::create_field_element(
             Integer::from_str_radix(
                 "483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8",
                 16,
@@ -123,14 +124,14 @@ mod tests {
 
     #[test]
     fn test_scalar_multiplication() {
-        let x = create_field_element(
+        let x = Secp256k1::create_field_element(
             Integer::from_str_radix(
                 "79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798",
                 16,
             )
             .unwrap(),
         );
-        let y = create_field_element(
+        let y = Secp256k1::create_field_element(
             Integer::from_str_radix(
                 "483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8",
                 16,
@@ -142,29 +143,29 @@ mod tests {
             16,
         )
         .unwrap();
-        let point = create_point(Some(x), Some(y));
-        let point2 = create_point(None, None);
+        let point = Secp256k1::create_point(Some(x), Some(y));
+        let point2 = Secp256k1::create_point(None, None);
 
-        assert_eq!(scalar_multiplication(point, n), point2);
+        assert_eq!(Secp256k1::scalar_multiplication(point, n), point2);
     }
 
     #[test]
     fn test_verify() {
-        let px = create_field_element(
+        let px = Secp256k1::create_field_element(
             Integer::from_str_radix(
                 "887387e452b8eacc4acfde10d9aaf7f6d9a0f975aabb10d006e4da568744d06c",
                 16,
             )
             .unwrap(),
         );
-        let py = create_field_element(
+        let py = Secp256k1::create_field_element(
             Integer::from_str_radix(
                 "61de6d95231cd89026e286df3b6ae4a894a3378e393e93a0f45b666329a0ae34",
                 16,
             )
             .unwrap(),
         );
-        let point = create_point(Some(px), Some(py));
+        let point = Secp256k1::create_point(Some(px), Some(py));
 
         // signature 1
         let z1 = Integer::from_str_radix(
