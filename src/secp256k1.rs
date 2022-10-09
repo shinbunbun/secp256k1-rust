@@ -1,19 +1,48 @@
 use rug::{ops::Pow, Integer};
 
 use crate::{
-    field_element::FieldElement, point::Point, private_key::PrivateKey, signature::Signature,
+    field_element::FieldElement,
+    point::Point,
+    private_key::PrivateKey,
+    signature::{self, Signature},
 };
 
-pub fn verify(point: Point<FieldElement<Integer>, Integer>, z: Integer, sig: Signature) -> bool {
-    let n = get_n();
-    let s_inv = sig.s.pow_mod(&(n.clone() - Integer::from(2)), &n).unwrap();
-    let u = z * s_inv.clone() % &n;
-    let v = sig.r.clone() * s_inv % &n;
-    let total = scalar_multiplication(get_g(), u) + scalar_multiplication(point, v);
-    if total.x.is_none() {
-        panic!("Total is at infinity");
+pub struct Secp256k1 {
+    private_key: Option<PrivateKey>,
+    public_key: Option<Point<FieldElement<Integer>, Integer>>,
+}
+
+impl Secp256k1 {
+    pub fn new(
+        private_key: Option<PrivateKey>,
+        public_key: Option<Point<FieldElement<Integer>, Integer>>,
+    ) -> Self {
+        Self {
+            private_key,
+            public_key,
+        }
     }
-    total.x.unwrap() == create_field_element(sig.r)
+
+    pub fn verify(&self, z: Integer, sig: Signature) -> bool {
+        let public_key = if self.private_key.is_some() {
+            self.private_key.clone().unwrap().point
+        } else {
+            if self.public_key.is_none() {
+                panic!("Public key is not set");
+            }
+            self.public_key.clone().unwrap()
+        };
+
+        let n = get_n();
+        let s_inv = sig.s.pow_mod(&(n.clone() - Integer::from(2)), &n).unwrap();
+        let u = z * s_inv.clone() % &n;
+        let v = sig.r.clone() * s_inv % &n;
+        let total = scalar_multiplication(get_g(), u) + scalar_multiplication(public_key, v);
+        if total.x.is_none() {
+            panic!("Total is at infinity");
+        }
+        total.x.unwrap() == create_field_element(sig.r)
+    }
 }
 
 pub fn sign(prv_key: &PrivateKey, z: Integer, k: Integer) -> Signature {
@@ -167,8 +196,10 @@ mod tests {
         )
         .unwrap();
 
-        assert!(verify(point.clone(), z1, Signature { r: r1, s: s1 }));
-        assert!(verify(point, z2, Signature { r: r2, s: s2 }));
+        let sec256 = Secp256k1::new(None, Some(point));
+
+        assert!(sec256.verify(z1, Signature { r: r1, s: s1 }));
+        assert!(sec256.verify(z2, Signature { r: r2, s: s2 }));
     }
 
     #[test]
@@ -191,11 +222,9 @@ mod tests {
         let k = random::random(get_n());
         let signature = sign(&private_key, message.clone(), k);
 
-        assert!(verify(
-            private_key.point.clone(),
-            message,
-            signature.clone()
-        ));
-        assert!(!verify(private_key.point, message2, signature));
+        let sec256 = Secp256k1::new(Some(private_key), None);
+
+        assert!(sec256.verify(message, signature.clone()));
+        assert!(!sec256.verify(message2, signature));
     }
 }
