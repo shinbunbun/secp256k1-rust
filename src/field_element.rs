@@ -1,5 +1,6 @@
 use std::{
     fmt::Debug,
+    marker::PhantomData,
     ops::{
         Add, AddAssign, BitAnd, Div, DivAssign, Mul, MulAssign, Rem, RemAssign, ShrAssign, Sub,
         SubAssign,
@@ -11,7 +12,7 @@ use rug::ops::Pow;
 use crate::pow::PowMod;
 
 #[derive(PartialEq, Eq, Debug, Clone)]
-pub struct FieldElement<T>
+pub struct FieldElement<T, U>
 where
     T: PartialEq
         + PartialOrd
@@ -32,9 +33,10 @@ where
 {
     num: T,
     prime: T,
+    _marker: PhantomData<fn() -> U>,
 }
 
-impl<T> FieldElement<T>
+impl<T, U> FieldElement<T, U>
 where
     T: PartialEq
         + PartialOrd
@@ -61,11 +63,15 @@ where
                 prime - 1.into()
             );
         }
-        Self { num, prime }
+        Self {
+            num,
+            prime,
+            _marker: PhantomData,
+        }
     }
 }
 
-impl<T, U> Pow<U> for FieldElement<T>
+impl<T, U, V> Pow<V> for FieldElement<T, U>
 where
     T: PartialEq
         + PartialOrd
@@ -83,16 +89,16 @@ where
         + Rem<Output = T>
         + ShrAssign<i32>
         + Add<Output = T>,
-    U: Into<T>,
+    V: Into<T>,
 {
     type Output = Self;
 
-    fn pow(self, exp: U) -> Self::Output {
+    fn pow(self, exp: V) -> Self::Output {
         self.pow_mod(exp.into(), self.prime.clone())
     }
 }
 
-impl<T> PowMod<T> for FieldElement<T>
+impl<T, U> PowMod<T> for FieldElement<T, U>
 where
     T: PartialEq
         + PartialOrd
@@ -131,11 +137,12 @@ where
         Self {
             num: ret,
             prime: self.prime.clone(),
+            _marker: PhantomData,
         }
     }
 }
 
-impl<T> Add for FieldElement<T>
+impl<T, U> Add for FieldElement<T, U>
 where
     T: PartialEq
         + PartialOrd
@@ -163,11 +170,12 @@ where
         Self {
             num: (self.num + other.num) % self.prime.clone(),
             prime: self.prime,
+            _marker: PhantomData,
         }
     }
 }
 
-impl<T> Sub for FieldElement<T>
+impl<T, U> Sub for FieldElement<T, U>
 where
     T: PartialEq
         + PartialOrd
@@ -202,11 +210,12 @@ where
         Self {
             num,
             prime: self.prime,
+            _marker: PhantomData,
         }
     }
 }
 
-impl<T> Mul for FieldElement<T>
+impl<T, U> Mul for FieldElement<T, U>
 where
     T: PartialEq
         + PartialOrd
@@ -234,11 +243,12 @@ where
         Self {
             num: (self.num * other.num) % self.prime.clone(),
             prime: self.prime,
+            _marker: PhantomData,
         }
     }
 }
 
-impl<T> Div for FieldElement<T>
+impl<T, U> Div for FieldElement<T, U>
 where
     T: PartialEq
         + PartialOrd
@@ -256,6 +266,7 @@ where
         + Rem<Output = T>
         + ShrAssign<i32>
         + Add<Output = T>,
+    U: Clone,
 {
     type Output = Self;
 
@@ -267,7 +278,7 @@ where
     }
 }
 
-impl<T> Mul<i32> for FieldElement<T>
+impl<T, U> Mul<U> for FieldElement<T, U>
 where
     T: PartialEq
         + PartialOrd
@@ -285,10 +296,11 @@ where
         + Rem<Output = T>
         + ShrAssign<i32>
         + Add<Output = T>,
+    U: Clone + Into<T>,
 {
     type Output = Self;
 
-    fn mul(self, other: i32) -> Self::Output {
+    fn mul(self, other: U) -> Self::Output {
         self.clone() * Self::new(other.into(), self.prime)
     }
 }
@@ -303,10 +315,12 @@ mod test {
 
     #[test]
     fn test_field_element_derive() {
-        let a = FieldElement::new(Integer::from(7), Integer::from(13));
-        let b = FieldElement::new(Integer::from(6), Integer::from(13));
-        let c = FieldElement::new(7, 13);
-        let d = FieldElement::new(6, 13);
+        let a: FieldElement<Integer, Integer> =
+            FieldElement::new(Integer::from(7), Integer::from(13));
+        let b: FieldElement<Integer, Integer> =
+            FieldElement::new(Integer::from(6), Integer::from(13));
+        let c: FieldElement<i32, i32> = FieldElement::new(7, 13);
+        let d: FieldElement<i32, i32> = FieldElement::new(6, 13);
 
         // test PartialEq
         assert_ne!(a, b);
@@ -315,7 +329,10 @@ mod test {
         assert!(c == c);
 
         // test Debug
-        assert_eq!(format!("{:?}", a), "FieldElement { num: 7, prime: 13 }");
+        assert_eq!(
+            format!("{:?}", a),
+            "FieldElement { num: 7, prime: 13, _marker: PhantomData }"
+        );
 
         // test Clone
         let e = a.clone();
@@ -327,10 +344,12 @@ mod test {
 
     #[test]
     fn test_field_element_pow() {
-        let a = FieldElement::new(Integer::from(4), Integer::from(13));
-        let b = FieldElement::new(Integer::from(12), Integer::from(13));
-        let c = FieldElement::new(4, 13);
-        let d = FieldElement::new(12, 13);
+        let a: FieldElement<Integer, Integer> =
+            FieldElement::new(Integer::from(4), Integer::from(13));
+        let b: FieldElement<Integer, Integer> =
+            FieldElement::new(Integer::from(12), Integer::from(13));
+        let c: FieldElement<i32, i32> = FieldElement::new(4, 13);
+        let d: FieldElement<i32, i32> = FieldElement::new(12, 13);
 
         assert_eq!(a.pow_mod(Integer::from(3), a.prime.clone()), b);
         assert_eq!(a.pow_mod(Integer::from(-3), a.prime.clone()), b);
@@ -340,12 +359,15 @@ mod test {
 
     #[test]
     fn test_field_element_add() {
-        let a = FieldElement::new(Integer::from(7), Integer::from(13));
-        let b = FieldElement::new(Integer::from(12), Integer::from(13));
-        let c = FieldElement::new(Integer::from(6), Integer::from(13));
-        let d = FieldElement::new(7, 13);
-        let e = FieldElement::new(12, 13);
-        let f = FieldElement::new(6, 13);
+        let a: FieldElement<Integer, Integer> =
+            FieldElement::new(Integer::from(7), Integer::from(13));
+        let b: FieldElement<Integer, Integer> =
+            FieldElement::new(Integer::from(12), Integer::from(13));
+        let c: FieldElement<Integer, Integer> =
+            FieldElement::new(Integer::from(6), Integer::from(13));
+        let d: FieldElement<i32, i32> = FieldElement::new(7, 13);
+        let e: FieldElement<i32, i32> = FieldElement::new(12, 13);
+        let f: FieldElement<i32, i32> = FieldElement::new(6, 13);
 
         assert_eq!(a + b, c);
         assert_eq!(d + e, f);
@@ -353,14 +375,18 @@ mod test {
 
     #[test]
     fn test_field_element_sub() {
-        let a = FieldElement::new(Integer::from(7), Integer::from(13));
-        let b = FieldElement::new(Integer::from(12), Integer::from(13));
-        let c = FieldElement::new(Integer::from(6), Integer::from(13));
-        let d = FieldElement::new(Integer::from(5), Integer::from(13));
-        let e = FieldElement::new(7, 13);
-        let f = FieldElement::new(12, 13);
-        let g = FieldElement::new(6, 13);
-        let h = FieldElement::new(5, 13);
+        let a: FieldElement<Integer, Integer> =
+            FieldElement::new(Integer::from(7), Integer::from(13));
+        let b: FieldElement<Integer, Integer> =
+            FieldElement::new(Integer::from(12), Integer::from(13));
+        let c: FieldElement<Integer, Integer> =
+            FieldElement::new(Integer::from(6), Integer::from(13));
+        let d: FieldElement<Integer, Integer> =
+            FieldElement::new(Integer::from(5), Integer::from(13));
+        let e: FieldElement<i32, i32> = FieldElement::new(7, 13);
+        let f: FieldElement<i32, i32> = FieldElement::new(12, 13);
+        let g: FieldElement<i32, i32> = FieldElement::new(6, 13);
+        let h: FieldElement<i32, i32> = FieldElement::new(5, 13);
 
         assert_eq!(c - b.clone(), a);
         assert_eq!(b - a, d);
@@ -370,12 +396,15 @@ mod test {
 
     #[test]
     fn test_field_element_mul() {
-        let a = FieldElement::new(Integer::from(3), Integer::from(13));
-        let b = FieldElement::new(Integer::from(12), Integer::from(13));
-        let c = FieldElement::new(Integer::from(10), Integer::from(13));
-        let d = FieldElement::new(3, 13);
-        let e = FieldElement::new(12, 13);
-        let f = FieldElement::new(10, 13);
+        let a: FieldElement<Integer, Integer> =
+            FieldElement::new(Integer::from(3), Integer::from(13));
+        let b: FieldElement<Integer, Integer> =
+            FieldElement::new(Integer::from(12), Integer::from(13));
+        let c: FieldElement<Integer, Integer> =
+            FieldElement::new(Integer::from(10), Integer::from(13));
+        let d: FieldElement<i32, i32> = FieldElement::new(3, 13);
+        let e: FieldElement<i32, i32> = FieldElement::new(12, 13);
+        let f: FieldElement<i32, i32> = FieldElement::new(10, 13);
 
         assert_eq!(a * b, c);
         assert_eq!(d * e, f);
@@ -383,12 +412,15 @@ mod test {
 
     #[test]
     fn test_field_element_div() {
-        let a = FieldElement::new(Integer::from(3), Integer::from(31));
-        let b = FieldElement::new(Integer::from(24), Integer::from(31));
-        let c = FieldElement::new(Integer::from(4), Integer::from(31));
-        let d = FieldElement::new(3, 31);
-        let e = FieldElement::new(24, 31);
-        let f = FieldElement::new(4, 31);
+        let a: FieldElement<Integer, Integer> =
+            FieldElement::new(Integer::from(3), Integer::from(31));
+        let b: FieldElement<Integer, Integer> =
+            FieldElement::new(Integer::from(24), Integer::from(31));
+        let c: FieldElement<Integer, Integer> =
+            FieldElement::new(Integer::from(4), Integer::from(31));
+        let d: FieldElement<i32, i32> = FieldElement::new(3, 31);
+        let e: FieldElement<i32, i32> = FieldElement::new(24, 31);
+        let f: FieldElement<i32, i32> = FieldElement::new(4, 31);
 
         assert_eq!(a / b, c);
         assert_eq!(d / e, f);

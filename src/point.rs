@@ -16,8 +16,7 @@ where
         + Pow<u32, Output = T>
         + PartialEq
         + Clone
-        + Debug
-        + Mul<i32, Output = T>,
+        + Debug,
 {
     pub x: Option<T>,
     pub y: Option<T>,
@@ -35,8 +34,7 @@ where
         + Pow<u32, Output = T>
         + PartialEq
         + Clone
-        + Debug
-        + Mul<i32, Output = T>,
+        + Debug,
 {
     pub fn new(x: Option<T>, y: Option<T>, a: T, b: T) -> Self {
         if x.is_none() && y.is_none() {
@@ -77,8 +75,8 @@ where
         + PartialEq
         + Clone
         + Debug
-        + Mul<i32, Output = T>,
-    U: Debug + PartialEq,
+        + Mul<U, Output = T>,
+    U: Debug + PartialEq + From<i32>,
 {
     type Output = Self;
 
@@ -120,8 +118,8 @@ where
         }
 
         // 同じ点の加算
-        let s = (x1.clone().pow(2) * 3 + self.a.clone()) / (y1.clone() * 2);
-        let x3 = s.clone().pow(2) - x1.clone() * 2;
+        let s = (x1.clone().pow(2) * U::from(3) + self.a.clone()) / (y1.clone() * U::from(2));
+        let x3 = s.clone().pow(2) - x1.clone() * U::from(2);
         let y3 = s * (x1 - x3.clone()) - y1;
         Self::new(Some(x3), Some(y3), self.a, self.b)
     }
@@ -137,7 +135,7 @@ where
         + PartialEq
         + Clone
         + Debug
-        + Mul<i32, Output = T>,
+        + Mul<U, Output = T>,
     U: Debug + Clone + PartialEq + PartialOrd + From<i32> + BitAnd<Output = U> + ShrAssign<i32>,
 {
     type Output = Self;
@@ -148,7 +146,7 @@ where
         let mut result = Point::new(None, None, self.a, self.b);
         while coef > 0.into() {
             if coef.clone() & 1.into() == 1.into() {
-                result = result + current.clone();
+                result = current.clone() + result;
             }
             current = current.clone() + current;
             coef >>= 1;
@@ -176,7 +174,7 @@ mod test {
         // test Debug
         assert_eq!(
             format!("{:?}", p1),
-            "Point { x: Some(-1), y: Some(-1), a: 5, b: 7 }"
+            "Point { x: Some(-1), y: Some(-1), a: 5, b: 7, _maker: PhantomData }"
         );
 
         // test Clone
@@ -209,11 +207,12 @@ mod test {
         let x3 = FieldElement::new(Integer::from(220), Integer::from(223));
         let y3 = FieldElement::new(Integer::from(181), Integer::from(223));
 
-        let p1: Point<FieldElement<Integer>, Integer> =
+        let p1: Point<FieldElement<Integer, Integer>, Integer> =
             Point::new(Some(x1), Some(y1), a.clone(), b.clone());
-        let p2: Point<FieldElement<Integer>, Integer> =
+        let p2: Point<FieldElement<Integer, Integer>, Integer> =
             Point::new(Some(x2), Some(y2), a.clone(), b.clone());
-        let p3: Point<FieldElement<Integer>, Integer> = Point::new(Some(x3), Some(y3), a, b);
+        let p3: Point<FieldElement<Integer, Integer>, Integer> =
+            Point::new(Some(x3), Some(y3), a, b);
 
         // add
         assert_eq!(p1 + p2, p3);
@@ -221,13 +220,34 @@ mod test {
 
     #[test]
     fn scalar_multiplication() {
-        let a = FieldElement::new(Integer::from(0), Integer::from(223));
-        let b = FieldElement::new(Integer::from(7), Integer::from(223));
-        let x1 = FieldElement::new(Integer::from(47), Integer::from(223));
-        let y1 = FieldElement::new(Integer::from(71), Integer::from(223));
-        let y2 = FieldElement::new(Integer::from(152), Integer::from(223));
-        let p1 = Point::new(Some(x1.clone()), Some(y1.clone()), a.clone(), b.clone());
-        let p2 = Point::new(Some(x1.clone()), Some(y2.clone()), a.clone(), b.clone());
+        let a: FieldElement<Integer, Integer> =
+            FieldElement::new(Integer::from(0), Integer::from(223));
+        let a_i32: FieldElement<Integer, i32> =
+            FieldElement::new(Integer::from(0), Integer::from(223));
+        let b: FieldElement<Integer, Integer> =
+            FieldElement::new(Integer::from(7), Integer::from(223));
+        let b_i32: FieldElement<Integer, i32> =
+            FieldElement::new(Integer::from(7), Integer::from(223));
+        let x1: FieldElement<Integer, Integer> =
+            FieldElement::new(Integer::from(47), Integer::from(223));
+        let x1_i32: FieldElement<Integer, i32> =
+            FieldElement::new(Integer::from(47), Integer::from(223));
+        let y1: FieldElement<Integer, Integer> =
+            FieldElement::new(Integer::from(71), Integer::from(223));
+        let y1_i32: FieldElement<Integer, i32> =
+            FieldElement::new(Integer::from(71), Integer::from(223));
+        let y2: FieldElement<Integer, Integer> =
+            FieldElement::new(Integer::from(152), Integer::from(223));
+        let y2_i32: FieldElement<Integer, i32> =
+            FieldElement::new(Integer::from(152), Integer::from(223));
+        let p1: Point<FieldElement<Integer, i32>, i32> = Point::new(
+            Some(x1_i32.clone()),
+            Some(y1_i32),
+            a_i32.clone(),
+            b_i32.clone(),
+        );
+        let p2: Point<FieldElement<Integer, i32>, i32> =
+            Point::new(Some(x1_i32), Some(y2_i32), a_i32, b_i32);
         let p3 = Point::new(Some(x1.clone()), Some(y1), a.clone(), b.clone());
         let p4 = Point::new(Some(x1), Some(y2), a, b);
 
