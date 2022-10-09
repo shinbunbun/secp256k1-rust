@@ -1,9 +1,6 @@
 use std::{
     fmt::Debug,
-    ops::{
-        Add, AddAssign, BitAnd, Div, DivAssign, Mul, MulAssign, Rem, RemAssign, ShrAssign, Sub,
-        SubAssign,
-    },
+    ops::{Add, BitAnd, Div, Mul, Rem, ShrAssign, Sub},
 };
 
 use rug::ops::Pow;
@@ -11,47 +8,14 @@ use rug::ops::Pow;
 use crate::pow::PowMod;
 
 #[derive(PartialEq, Eq, Debug, Clone)]
-pub struct FieldElement<T>
-where
-    T: PartialEq
-        + PartialOrd
-        + Debug
-        + Sub<Output = T>
-        + From<i32>
-        + Clone
-        + DivAssign
-        + MulAssign
-        + Mul<Output = T>
-        + AddAssign
-        + SubAssign
-        + RemAssign
-        + BitAnd<Output = T>
-        + Rem<Output = T>
-        + ShrAssign<i32>
-        + Add<Output = T>,
-{
+pub struct FieldElement<T> {
     pub num: T,
     pub prime: T,
 }
 
 impl<T> FieldElement<T>
 where
-    T: PartialEq
-        + PartialOrd
-        + Debug
-        + Sub<Output = T>
-        + From<i32>
-        + Clone
-        + DivAssign
-        + MulAssign
-        + Mul<Output = T>
-        + AddAssign
-        + SubAssign
-        + RemAssign
-        + BitAnd<Output = T>
-        + Rem<Output = T>
-        + ShrAssign<i32>
-        + Add<Output = T>,
+    T: PartialOrd + Debug + Sub<Output = T> + From<i32>,
 {
     pub fn new(num: T, prime: T) -> Self {
         if num >= prime {
@@ -69,16 +33,10 @@ impl<T, U> Pow<U> for FieldElement<T>
 where
     T: PartialEq
         + PartialOrd
-        + Debug
         + Sub<Output = T>
         + From<i32>
         + Clone
-        + DivAssign
-        + MulAssign
         + Mul<Output = T>
-        + AddAssign
-        + SubAssign
-        + RemAssign
         + BitAnd<Output = T>
         + Rem<Output = T>
         + ShrAssign<i32>
@@ -96,16 +54,10 @@ impl<T> PowMod<T> for FieldElement<T>
 where
     T: PartialEq
         + PartialOrd
-        + Debug
         + Sub<Output = T>
         + From<i32>
         + Clone
-        + DivAssign
-        + MulAssign
         + Mul<Output = T>
-        + AddAssign
-        + SubAssign
-        + RemAssign
         + BitAnd<Output = T>
         + Rem<Output = T>
         + ShrAssign<i32>
@@ -137,22 +89,7 @@ where
 
 impl<T> Add for FieldElement<T>
 where
-    T: PartialEq
-        + PartialOrd
-        + Debug
-        + Sub<Output = T>
-        + From<i32>
-        + Clone
-        + DivAssign
-        + MulAssign
-        + Mul<Output = T>
-        + AddAssign
-        + SubAssign
-        + RemAssign
-        + BitAnd<Output = T>
-        + Rem<Output = T>
-        + ShrAssign<i32>
-        + Add<Output = T>,
+    T: Add<Output = T> + Clone + PartialEq + Rem<Output = T>,
 {
     type Output = Self;
 
@@ -169,22 +106,7 @@ where
 
 impl<T> Sub for FieldElement<T>
 where
-    T: PartialEq
-        + PartialOrd
-        + Debug
-        + Sub<Output = T>
-        + From<i32>
-        + Clone
-        + DivAssign
-        + MulAssign
-        + Mul<Output = T>
-        + AddAssign
-        + SubAssign
-        + RemAssign
-        + BitAnd<Output = T>
-        + Rem<Output = T>
-        + ShrAssign<i32>
-        + Add<Output = T>,
+    T: PartialEq + PartialOrd + Sub<Output = T> + Clone + Add<Output = T>,
 {
     type Output = Self;
 
@@ -208,22 +130,7 @@ where
 
 impl<T> Mul for FieldElement<T>
 where
-    T: PartialEq
-        + PartialOrd
-        + Debug
-        + Sub<Output = T>
-        + From<i32>
-        + Clone
-        + DivAssign
-        + MulAssign
-        + Mul<Output = T>
-        + AddAssign
-        + SubAssign
-        + RemAssign
-        + BitAnd<Output = T>
-        + Rem<Output = T>
-        + ShrAssign<i32>
-        + Add<Output = T>,
+    T: PartialEq + Mul<Output = T> + Clone + Rem<Output = T>,
 {
     type Output = Self;
 
@@ -242,16 +149,10 @@ impl<T> Div for FieldElement<T>
 where
     T: PartialEq
         + PartialOrd
-        + Debug
         + Sub<Output = T>
         + From<i32>
         + Clone
-        + DivAssign
-        + MulAssign
         + Mul<Output = T>
-        + AddAssign
-        + SubAssign
-        + RemAssign
         + BitAnd<Output = T>
         + Rem<Output = T>
         + ShrAssign<i32>
@@ -269,22 +170,7 @@ where
 
 impl<T> Mul<i32> for FieldElement<T>
 where
-    T: PartialEq
-        + PartialOrd
-        + Debug
-        + Sub<Output = T>
-        + From<i32>
-        + Clone
-        + DivAssign
-        + MulAssign
-        + Mul<Output = T>
-        + AddAssign
-        + SubAssign
-        + RemAssign
-        + BitAnd<Output = T>
-        + Rem<Output = T>
-        + ShrAssign<i32>
-        + Add<Output = T>,
+    T: PartialOrd + Debug + Sub<Output = T> + From<i32> + Clone + Mul<Output = T> + Rem<Output = T>,
 {
     type Output = Self;
 
@@ -334,8 +220,8 @@ mod test {
 
         assert_eq!(a.pow_mod(Integer::from(3), a.prime.clone()), b);
         assert_eq!(a.pow_mod(Integer::from(-3), a.prime.clone()), b);
-        assert_eq!(c.pow_mod(3, c.prime.clone()), d);
-        assert_eq!(c.pow_mod(-3, c.prime.clone()), d);
+        assert_eq!(c.pow_mod(3, c.prime), d);
+        assert_eq!(c.pow_mod(-3, c.prime), d);
     }
 
     #[test]
