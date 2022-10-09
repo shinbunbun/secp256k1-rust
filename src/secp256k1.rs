@@ -36,7 +36,7 @@ pub fn verify(point: Point<FieldElement<Integer>, Integer>, z: Integer, sig: Sig
     total.x.unwrap() == create_field_element(sig.r)
 }
 
-fn get_n() -> Integer {
+pub fn get_n() -> Integer {
     Integer::from_str_radix(
         "fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141",
         16,
@@ -44,7 +44,7 @@ fn get_n() -> Integer {
     .unwrap()
 }
 
-fn get_g() -> Point<FieldElement<Integer>, Integer> {
+pub(crate) fn get_g() -> Point<FieldElement<Integer>, Integer> {
     create_point(
         Some(create_field_element(
             Integer::from_str_radix(
