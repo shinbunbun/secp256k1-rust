@@ -3,8 +3,7 @@ use rug::Integer;
 use crate::{
     field_element::FieldElement,
     point::Point,
-    random,
-    secp256k1::{self, create_field_element},
+    secp256k1::{self},
     signature::Signature,
 };
 
@@ -39,7 +38,7 @@ impl PrivateKey {
 mod test {
     use rug::integer::Order;
 
-    use crate::{hash::create_sha256_from_string, secp256k1::verify};
+    use crate::{hash::create_sha256_from_string, random, secp256k1::verify};
 
     use super::*;
 
