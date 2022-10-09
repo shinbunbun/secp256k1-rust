@@ -1,10 +1,9 @@
-use rand::{RngCore, SeedableRng};
-use rand_chacha::ChaCha20Rng;
-use rug::{integer::Order, Integer};
+use rug::{rand::RandState, Integer};
 
-fn csprng() -> Integer {
-    let mut csp_rng = ChaCha20Rng::from_entropy();
-    let mut data = [0u8; 32];
-    csp_rng.fill_bytes(&mut data);
-    Integer::from_digits(&data, Order::Lsf)
+use crate::secp256k1::get_n;
+
+pub(crate) fn random() -> Integer {
+    let mut rand = RandState::new();
+    let n = get_n();
+    n.random_below(&mut rand)
 }
