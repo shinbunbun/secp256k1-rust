@@ -19,10 +19,10 @@ where
         + Debug
         + Mul<i32, Output = T>,
 {
-    x: Option<T>,
-    y: Option<T>,
-    a: T,
-    b: T,
+    pub x: Option<T>,
+    pub y: Option<T>,
+    pub a: T,
+    pub b: T,
     _maker: PhantomData<fn() -> U>,
 }
 
