@@ -2,33 +2,29 @@ use rug::{ops::Pow, Integer};
 
 use crate::{field_element::FieldElement, point::Point, signature::Signature};
 
-pub fn create_field_element(num: Integer) -> FieldElement<Integer, Integer> {
+pub fn create_field_element(num: Integer) -> FieldElement<Integer> {
     let p = Integer::from(2).pow(256) - Integer::from(2).pow(32) - Integer::from(977);
     FieldElement::new(num, p)
 }
 
 pub fn create_point(
-    x: Option<FieldElement<Integer, Integer>>,
-    y: Option<FieldElement<Integer, Integer>>,
-) -> Point<FieldElement<Integer, Integer>, Integer> {
+    x: Option<FieldElement<Integer>>,
+    y: Option<FieldElement<Integer>>,
+) -> Point<FieldElement<Integer>, Integer> {
     let a = create_field_element(Integer::from(0));
     let b = create_field_element(Integer::from(7));
     Point::new(x, y, a, b)
 }
 
 pub fn scalar_multiplication(
-    point: Point<FieldElement<Integer, Integer>, Integer>,
+    point: Point<FieldElement<Integer>, Integer>,
     mut coefficient: Integer,
-) -> Point<FieldElement<Integer, Integer>, Integer> {
+) -> Point<FieldElement<Integer>, Integer> {
     coefficient %= get_n();
     point * coefficient
 }
 
-pub fn verify(
-    point: Point<FieldElement<Integer, Integer>, Integer>,
-    z: Integer,
-    sig: Signature,
-) -> bool {
+pub fn verify(point: Point<FieldElement<Integer>, Integer>, z: Integer, sig: Signature) -> bool {
     let n = get_n();
     let s_inv = sig.s.pow_mod(&(n.clone() - Integer::from(2)), &n).unwrap();
     let u = z * s_inv.clone() % &n;
@@ -48,7 +44,7 @@ pub fn get_n() -> Integer {
     .unwrap()
 }
 
-pub(crate) fn get_g() -> Point<FieldElement<Integer, Integer>, Integer> {
+pub(crate) fn get_g() -> Point<FieldElement<Integer>, Integer> {
     create_point(
         Some(create_field_element(
             Integer::from_str_radix(
