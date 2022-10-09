@@ -1,12 +1,6 @@
 use rug::{ops::Pow, Integer};
 
-use crate::{field_element::FieldElement, point::Point};
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct Signature {
-    r: Integer,
-    s: Integer,
-}
+use crate::{field_element::FieldElement, point::Point, signature::Signature};
 
 pub fn create_field_element(num: Integer) -> FieldElement<Integer> {
     let p = Integer::from(2).pow(256) - Integer::from(2).pow(32) - Integer::from(977);
