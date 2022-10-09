@@ -10,6 +10,8 @@ use crate::{
 pub struct Secp256k1 {
     private_key: Option<PrivateKey>,
     public_key: Option<Point<FieldElement<Integer>, Integer>>,
+    g: Point<FieldElement<Integer>, Integer>,
+    n: Integer,
 }
 
 impl Secp256k1 {
@@ -20,6 +22,8 @@ impl Secp256k1 {
         Self {
             private_key,
             public_key,
+            g: get_g(),
+            n: get_n(),
         }
     }
 
@@ -33,11 +37,13 @@ impl Secp256k1 {
             self.public_key.clone().unwrap()
         };
 
-        let n = get_n();
-        let s_inv = sig.s.pow_mod(&(n.clone() - Integer::from(2)), &n).unwrap();
-        let u = z * s_inv.clone() % &n;
-        let v = sig.r.clone() * s_inv % &n;
-        let total = Secp256k1::scalar_multiplication(get_g(), u)
+        let s_inv = sig
+            .s
+            .pow_mod(&(self.n.clone() - Integer::from(2)), &self.n)
+            .unwrap();
+        let u = z * s_inv.clone() % &self.n;
+        let v = sig.r.clone() * s_inv % &self.n;
+        let total = Secp256k1::scalar_multiplication(self.g.clone(), u)
             + Secp256k1::scalar_multiplication(public_key, v);
         if total.x.is_none() {
             panic!("Total is at infinity");
@@ -50,13 +56,12 @@ impl Secp256k1 {
             panic!("Private key is not set");
         }
 
-        let n = get_n();
-        let g = get_g();
-        let r = (g * k.clone()).x.unwrap().num;
-        let k_inv = k.pow_mod(&(n.clone() - 2), &n).unwrap();
-        let mut s = (r.clone() * self.private_key.clone().unwrap().secret + z) * k_inv % n.clone();
-        if s > n.clone() / 2 {
-            s = n - s
+        let r = (self.g.clone() * k.clone()).x.unwrap().num;
+        let k_inv = k.pow_mod(&(self.n.clone() - 2), &self.n).unwrap();
+        let mut s =
+            (r.clone() * self.private_key.clone().unwrap().secret + z) * k_inv % self.n.clone();
+        if s > self.n.clone() / 2 {
+            s = self.n.clone() - s
         }
         Signature { r, s }
     }
