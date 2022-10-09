@@ -176,7 +176,7 @@ mod test {
         // test Debug
         assert_eq!(
             format!("{:?}", p1),
-            "Point { x: Some(-1), y: Some(-1), a: 5, b: 7 }"
+            "Point { x: Some(-1), y: Some(-1), a: 5, b: 7, _maker: PhantomData }"
         );
 
         // test Clone
