@@ -91,7 +91,7 @@ impl Secp256k1 {
         .unwrap()
     }
 
-    fn get_g() -> Point<FieldElement<Integer>, Integer> {
+    pub fn get_g() -> Point<FieldElement<Integer>, Integer> {
         Secp256k1::create_point(
             Some(Secp256k1::create_field_element(
                 Integer::from_str_radix(
@@ -110,7 +110,7 @@ impl Secp256k1 {
         )
     }
 
-    fn deterministic_k(&self, mut z: Integer) -> Integer {
+    pub fn deterministic_k(&self, mut z: Integer) -> Integer {
         let n = Secp256k1::get_n();
         if z > n {
             z -= n.clone();
