@@ -158,10 +158,7 @@ impl Secp256k1 {
 mod tests {
     use rug::integer::Order;
 
-    use crate::{
-        hash::create_sha256_from_string,
-        random::{self, random},
-    };
+    use crate::hash::create_sha256_from_string;
 
     use super::*;
 
