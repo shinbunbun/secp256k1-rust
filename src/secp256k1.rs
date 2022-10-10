@@ -1,17 +1,12 @@
 use rug::{ops::Pow, Integer};
 
 use crate::{
-    field_element::FieldElement,
-    point::Point,
-    private_key::PrivateKey,
-    signature::{self, Signature},
+    field_element::FieldElement, point::Point, private_key::PrivateKey, signature::Signature,
 };
 
 pub struct Secp256k1 {
     private_key: Option<PrivateKey>,
     public_key: Option<Point<FieldElement<Integer>, Integer>>,
-    g: Point<FieldElement<Integer>, Integer>,
-    n: Integer,
 }
 
 impl Secp256k1 {
@@ -22,8 +17,6 @@ impl Secp256k1 {
         Self {
             private_key,
             public_key,
-            g: get_g(),
-            n: get_n(),
         }
     }
 
@@ -36,14 +29,13 @@ impl Secp256k1 {
             }
             self.public_key.clone().unwrap()
         };
+        let n = Secp256k1::get_n();
+        let g = Secp256k1::get_g();
 
-        let s_inv = sig
-            .s
-            .pow_mod(&(self.n.clone() - Integer::from(2)), &self.n)
-            .unwrap();
-        let u = z * s_inv.clone() % &self.n;
-        let v = sig.r.clone() * s_inv % &self.n;
-        let total = Secp256k1::scalar_multiplication(self.g.clone(), u)
+        let s_inv = sig.s.pow_mod(&(n.clone() - Integer::from(2)), &n).unwrap();
+        let u = z * s_inv.clone() % &n;
+        let v = sig.r.clone() * s_inv % &n;
+        let total = Secp256k1::scalar_multiplication(g.clone(), u)
             + Secp256k1::scalar_multiplication(public_key, v);
         if total.x.is_none() {
             panic!("Total is at infinity");
@@ -56,12 +48,14 @@ impl Secp256k1 {
             panic!("Private key is not set");
         }
 
-        let r = (self.g.clone() * k.clone()).x.unwrap().num;
-        let k_inv = k.pow_mod(&(self.n.clone() - 2), &self.n).unwrap();
-        let mut s =
-            (r.clone() * self.private_key.clone().unwrap().secret + z) * k_inv % self.n.clone();
-        if s > self.n.clone() / 2 {
-            s = self.n.clone() - s
+        let n = Secp256k1::get_n();
+        let g = Secp256k1::get_g();
+
+        let r = (g * k.clone()).x.unwrap().num;
+        let k_inv = k.pow_mod(&(n.clone() - 2), &n).unwrap();
+        let mut s = (r.clone() * self.private_key.clone().unwrap().secret + z) * k_inv % n.clone();
+        if s > n.clone() / 2 {
+            s = n - s
         }
         Signature { r, s }
     }
@@ -84,36 +78,36 @@ impl Secp256k1 {
         point: Point<FieldElement<Integer>, Integer>,
         mut coefficient: Integer,
     ) -> Point<FieldElement<Integer>, Integer> {
-        coefficient %= get_n();
+        coefficient %= Secp256k1::get_n();
         point * coefficient
     }
-}
 
-fn get_g() -> Point<FieldElement<Integer>, Integer> {
-    Secp256k1::create_point(
-        Some(Secp256k1::create_field_element(
-            Integer::from_str_radix(
-                "79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798",
-                16,
-            )
-            .unwrap(),
-        )),
-        Some(Secp256k1::create_field_element(
-            Integer::from_str_radix(
-                "483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8",
-                16,
-            )
-            .unwrap(),
-        )),
-    )
-}
+    fn get_n() -> Integer {
+        Integer::from_str_radix(
+            "fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141",
+            16,
+        )
+        .unwrap()
+    }
 
-fn get_n() -> Integer {
-    Integer::from_str_radix(
-        "fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141",
-        16,
-    )
-    .unwrap()
+    fn get_g() -> Point<FieldElement<Integer>, Integer> {
+        Secp256k1::create_point(
+            Some(Secp256k1::create_field_element(
+                Integer::from_str_radix(
+                    "79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798",
+                    16,
+                )
+                .unwrap(),
+            )),
+            Some(Secp256k1::create_field_element(
+                Integer::from_str_radix(
+                    "483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8",
+                    16,
+                )
+                .unwrap(),
+            )),
+        )
+    }
 }
 
 #[cfg(test)]
@@ -227,10 +221,10 @@ mod tests {
             Order::LsfBe,
         );
 
-        let point = get_g() * secret.clone();
+        let point = Secp256k1::get_g() * secret.clone();
         let private_key = PrivateKey::new(secret, point);
         let sec256 = Secp256k1::new(Some(private_key), None);
-        let k = random::random(get_n());
+        let k = random::random(Secp256k1::get_n());
         let signature = sec256.sign(message.clone(), k);
 
         assert!(sec256.verify(message, signature.clone()));
