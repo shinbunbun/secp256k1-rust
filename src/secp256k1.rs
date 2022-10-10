@@ -1,7 +1,8 @@
-use rug::{ops::Pow, Integer};
+use rug::{integer::Order, ops::Pow, Integer};
 
 use crate::{
-    field_element::FieldElement, point::Point, private_key::PrivateKey, signature::Signature,
+    field_element::FieldElement, hash::create_hmac256, point::Point, private_key::PrivateKey,
+    signature::Signature,
 };
 
 pub struct Secp256k1 {
@@ -107,6 +108,49 @@ impl Secp256k1 {
                 .unwrap(),
             )),
         )
+    }
+
+    fn deterministic_k(&self, mut z: Integer) -> Integer {
+        let n = Secp256k1::get_n();
+        if z > n {
+            z -= n.clone();
+        }
+        let mut k = [b'\x00'; 32].to_vec();
+        let mut v = [b'\x01'; 32].to_vec();
+        let z_bytes = z.to_digits::<u8>(Order::LsfBe);
+        let secret_bytes = self
+            .private_key
+            .clone()
+            .unwrap()
+            .secret
+            .to_digits::<u8>(Order::LsfBe);
+
+        v.push(b'\x00');
+        k = create_hmac256(
+            &k,
+            &[v.clone(), secret_bytes.clone(), z_bytes.clone()].concat(),
+        );
+
+        v = create_hmac256(&k, &v);
+
+        v.push(b'\x01');
+        k = create_hmac256(&k, ([v.clone(), secret_bytes, z_bytes].concat()).as_slice());
+
+        v = create_hmac256(&k, &v);
+
+        loop {
+            v = create_hmac256(&k, &v);
+
+            let candidate = Integer::from_digits(v.as_slice(), Order::LsfBe);
+            if candidate >= 1 && candidate < n {
+                return candidate;
+            }
+
+            v.push(b'\x00');
+            k = create_hmac256(&k, &v);
+
+            v = create_hmac256(&k, &v);
+        }
     }
 }
 
@@ -224,7 +268,7 @@ mod tests {
         let point = Secp256k1::get_g() * secret.clone();
         let private_key = PrivateKey::new(secret, point);
         let sec256 = Secp256k1::new(Some(private_key), None);
-        let k = random::random(Secp256k1::get_n());
+        let k = sec256.deterministic_k(message.clone());
         let signature = sec256.sign(message.clone(), k);
 
         assert!(sec256.verify(message, signature.clone()));
