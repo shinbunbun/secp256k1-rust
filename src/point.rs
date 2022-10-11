@@ -138,6 +138,7 @@ where
     }
 }
 
+#[cfg(test)]
 mod test {
     use rug::Integer;
 

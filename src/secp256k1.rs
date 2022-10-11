@@ -5,9 +5,10 @@ use crate::{
     signature::Signature,
 };
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Secp256k1 {
-    private_key: Option<PrivateKey>,
-    public_key: Option<Point<FieldElement<Integer>, Integer>>,
+    pub private_key: Option<PrivateKey>,
+    pub public_key: Option<Point<FieldElement<Integer>, Integer>>,
 }
 
 impl Secp256k1 {
@@ -61,12 +62,12 @@ impl Secp256k1 {
         Signature { r, s }
     }
 
-    fn create_field_element(num: Integer) -> FieldElement<Integer> {
+    pub fn create_field_element(num: Integer) -> FieldElement<Integer> {
         let p = Integer::from(2).pow(256) - Integer::from(2).pow(32) - Integer::from(977);
         FieldElement::new(num, p)
     }
 
-    fn create_point(
+    pub fn create_point(
         x: Option<FieldElement<Integer>>,
         y: Option<FieldElement<Integer>>,
     ) -> Point<FieldElement<Integer>, Integer> {
