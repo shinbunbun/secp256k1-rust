@@ -56,7 +56,7 @@ fn verify() {
     let mut message = String::new();
     io::stdin().read_line(&mut message).unwrap();
     let message = message.trim();
-    let message = Integer::from_digits(create_sha256_from_string(message).as_slice(), Order::LsfBe);
+    let message = Integer::from_digits(create_sha256_from_string(message).as_slice(), Order::MsfBe);
 
     println!("\n5. Please input the signature r: ");
     let mut r = String::new();
@@ -84,7 +84,7 @@ fn sign() {
     io::stdin().read_line(&mut secret).unwrap();
     secret = secret.trim().to_string();
 
-    let secret = Integer::from_digits(create_sha256_from_string(&secret).as_slice(), Order::LsfBe);
+    let secret = Integer::from_digits(create_sha256_from_string(&secret).as_slice(), Order::MsfBe);
     let private_key = PrivateKey::new(secret.clone(), Secp256k1::get_g() * secret);
     let sec256 = Secp256k1::new(Some(private_key), None);
 
@@ -115,7 +115,7 @@ fn sign() {
     io::stdin().read_line(&mut message).unwrap();
     let message = Integer::from_digits(
         create_sha256_from_string(message.trim()).as_slice(),
-        Order::LsfBe,
+        Order::MsfBe,
     );
 
     let k = sec256.deterministic_k(message.clone());

@@ -118,13 +118,13 @@ impl Secp256k1 {
         }
         let mut k = [b'\x00'; 32].to_vec();
         let mut v = [b'\x01'; 32].to_vec();
-        let z_bytes = z.to_digits::<u8>(Order::LsfBe);
+        let z_bytes = z.to_digits::<u8>(Order::MsfBe);
         let secret_bytes = self
             .private_key
             .clone()
             .unwrap()
             .secret
-            .to_digits::<u8>(Order::LsfBe);
+            .to_digits::<u8>(Order::MsfBe);
 
         v.push(b'\x00');
         k = create_hmac256(
@@ -142,7 +142,7 @@ impl Secp256k1 {
         loop {
             v = create_hmac256(&k, &v);
 
-            let candidate = Integer::from_digits(v.as_slice(), Order::LsfBe);
+            let candidate = Integer::from_digits(v.as_slice(), Order::MsfBe);
             if candidate >= 1 && candidate < n {
                 return candidate;
             }
@@ -252,15 +252,15 @@ mod tests {
     fn test_sign() {
         let secret = Integer::from_digits(
             create_sha256_from_string("my secret").as_slice(),
-            Order::LsfBe,
+            Order::MsfBe,
         );
         let message = Integer::from_digits(
             create_sha256_from_string("my message").as_slice(),
-            Order::LsfBe,
+            Order::MsfBe,
         );
         let message2 = Integer::from_digits(
             create_sha256_from_string("my message2").as_slice(),
-            Order::LsfBe,
+            Order::MsfBe,
         );
 
         let point = Secp256k1::get_g() * secret.clone();
