@@ -37,7 +37,7 @@ impl Secp256k1 {
         let s_inv = sig.s.pow_mod(&(n.clone() - Integer::from(2)), &n).unwrap();
         let u = z * s_inv.clone() % &n;
         let v = sig.r.clone() * s_inv % &n;
-        let total = Secp256k1::scalar_multiplication(g.clone(), u)
+        let total = Secp256k1::scalar_multiplication(g, u)
             + Secp256k1::scalar_multiplication(public_key, v);
         if total.x.is_none() {
             panic!("Total is at infinity");

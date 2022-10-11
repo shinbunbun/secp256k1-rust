@@ -119,7 +119,7 @@ fn sign() {
     );
 
     let k = sec256.deterministic_k(message.clone());
-    let signature = sec256.sign(message.clone(), k);
+    let signature = sec256.sign(message, k);
 
     println!("\n{:?}", signature);
 }
