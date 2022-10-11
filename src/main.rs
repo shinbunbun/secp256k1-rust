@@ -32,7 +32,7 @@ fn main() {
 }
 
 fn sign() {
-    println!("1. Please input secret key");
+    println!("1. Please input secret key: ");
     let mut secret = String::new();
     io::stdin().read_line(&mut secret).unwrap();
     secret = secret.trim().to_string();
@@ -41,7 +41,7 @@ fn sign() {
     let private_key = PrivateKey::new(secret, Secp256k1::get_g());
     let sec256 = Secp256k1::new(Some(private_key), None);
 
-    println!("2. Please input message");
+    println!("2. Please input message: ");
     let mut message = String::new();
     io::stdin().read_line(&mut message).unwrap();
     message = message.trim().to_string();
