@@ -1,4 +1,4 @@
-use std::io;
+use std::{io, process::exit};
 
 use rug::{integer::Order, Integer};
 
@@ -14,9 +14,28 @@ mod signature;
 
 fn main() {
     println!("Hello, Secp256k1!\n");
+
+    println!("1. Input evaluation command [V]erify or [S]ign: ");
+    let mut eval_command = String::new();
+    io::stdin().read_line(&mut eval_command).unwrap();
+
+    match eval_command.trim() {
+        "V" | "v" => {
+            println!("v");
+        }
+        "S" | "s" => sign(),
+        _ => {
+            println!("\nInvalid command");
+            exit(1);
+        }
+    }
+}
+
+fn sign() {
     println!("1. Please input secret key");
     let mut secret = String::new();
     io::stdin().read_line(&mut secret).unwrap();
+    secret = secret.trim().to_string();
 
     let secret = Integer::from_digits(create_sha256_from_string(&secret).as_slice(), Order::LsfBe);
     let private_key = PrivateKey::new(secret, Secp256k1::get_g());
@@ -25,6 +44,7 @@ fn main() {
     println!("2. Please input message");
     let mut message = String::new();
     io::stdin().read_line(&mut message).unwrap();
+    message = message.trim().to_string();
     let message =
         Integer::from_digits(create_sha256_from_string(&message).as_slice(), Order::LsfBe);
 
