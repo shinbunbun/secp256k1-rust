@@ -1,8 +1,8 @@
+use elliptic_curve::Point;
 use rug::{integer::Order, ops::Pow, Integer};
 
 use crate::{
     hash::{self, create_hmac256},
-    point::Point,
     signature::Signature,
 };
 

@@ -159,6 +159,7 @@ dependencies = [
 name = "elliptic_curve"
 version = "0.1.0"
 dependencies = [
+ "field_element",
  "rug",
 ]
 
@@ -326,6 +327,7 @@ name = "secp256k1-rust"
 version = "0.1.0"
 dependencies = [
  "chrono",
+ "elliptic_curve",
  "field_element",
  "hex",
  "hmac",
