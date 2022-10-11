@@ -1,12 +1,12 @@
 use std::{io, process::exit, str::FromStr};
 
+use elliptic_curve::Signature;
 use rug::{integer::Order, Integer};
 
-use crate::{hash::create_sha256_from_string, secp256k1::Secp256k1, signature::Signature};
+use crate::{hash::create_sha256_from_string, secp256k1::Secp256k1};
 
 mod hash;
 mod secp256k1;
-mod signature;
 
 fn main() {
     println!("Hello, Secp256k1!\n");

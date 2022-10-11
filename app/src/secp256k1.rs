@@ -1,10 +1,7 @@
-use elliptic_curve::Point;
+use elliptic_curve::{Point, Signature};
 use rug::{integer::Order, ops::Pow, Integer};
 
-use crate::{
-    hash::{self, create_hmac256},
-    signature::Signature,
-};
+use crate::hash::{self, create_hmac256};
 
 use field_element::FieldElement;
 
