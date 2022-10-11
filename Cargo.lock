@@ -156,6 +156,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "field_element"
+version = "0.1.0"
+dependencies = [
+ "rug",
+]
+
+[[package]]
 name = "generic-array"
 version = "0.14.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -312,6 +319,7 @@ name = "secp256k1-rust"
 version = "0.1.0"
 dependencies = [
  "chrono",
+ "field_element",
  "hex",
  "hmac",
  "rug",

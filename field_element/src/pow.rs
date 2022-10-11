@@ -1,3 +1,7 @@
+pub trait Pow<T> {
+    fn pow(&self, exp: T) -> Self;
+}
+
 pub trait PowMod<T> {
     fn pow_mod(&self, n: T, m: T) -> Self;
 }

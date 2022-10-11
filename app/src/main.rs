@@ -4,10 +4,8 @@ use rug::{integer::Order, Integer};
 
 use crate::{hash::create_sha256_from_string, secp256k1::Secp256k1, signature::Signature};
 
-mod field_element;
 mod hash;
 mod point;
-mod pow;
 mod secp256k1;
 mod signature;
 

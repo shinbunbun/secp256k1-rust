@@ -143,7 +143,7 @@ mod test {
     use rug::Integer;
 
     use super::Point;
-    use crate::field_element::FieldElement;
+    use field_element::FieldElement;
 
     #[test]
     fn test_point_derive() {

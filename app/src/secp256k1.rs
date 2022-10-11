@@ -1,11 +1,12 @@
 use rug::{integer::Order, ops::Pow, Integer};
 
 use crate::{
-    field_element::FieldElement,
     hash::{self, create_hmac256},
     point::Point,
     signature::Signature,
 };
+
+use field_element::FieldElement;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Secp256k1 {

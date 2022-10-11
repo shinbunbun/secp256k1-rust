@@ -1,13 +1,2 @@
-[package]
-name = "secp256k1-rust"
-version = "0.1.0"
-edition = "2021"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
-[dependencies]
-rug = "1.17.0"
-sha2 = "0.10.6"
-hex = "0.4.3"
-chrono = "0.4.22"
-hmac = "0.12.1"
+[workspace]
+members = ["app", "field_element"]
