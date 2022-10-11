@@ -1,2 +1,2 @@
 [workspace]
-members = ["app", "field_element"]
+members = ["app", "field_element", "elliptic_curve"]
