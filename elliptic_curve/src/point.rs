@@ -4,7 +4,7 @@ use std::{
     ops::{Add, BitAnd, Div, Mul, ShrAssign, Sub},
 };
 
-use rug::ops::Pow;
+use num_traits::Pow;
 
 #[derive(PartialEq, Eq, Debug, Clone)]
 pub struct Point<T, U> {

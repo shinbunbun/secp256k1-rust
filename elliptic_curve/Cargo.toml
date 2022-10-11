@@ -7,4 +7,5 @@ edition = "2021"
 
 [dependencies]
 rug = "1.17.0"
+num-traits = "0.2.15"
 field_element = { path = "../field_element" }

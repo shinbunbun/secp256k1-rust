@@ -3,7 +3,7 @@ use std::{
     ops::{Add, BitAnd, Div, Mul, Rem, ShrAssign, Sub},
 };
 
-use rug::ops::Pow;
+use num_traits::Pow;
 
 use crate::pow::PowMod;
 
