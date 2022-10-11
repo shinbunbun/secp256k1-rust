@@ -45,8 +45,8 @@ fn verify() {
         Integer::from_str(y.trim()).unwrap(),
     ));
 
-    let point = Secp256k1::create_point(x, y);
-    let sec256 = Secp256k1::new(None, point);
+    let public_key = Secp256k1::create_point(x, y);
+    let sec256 = Secp256k1::new_with_public_key(public_key);
 
     println!("\n4. Please input the message: ");
     let mut message = String::new();
@@ -78,11 +78,8 @@ fn sign() {
     println!("\n2. Please input secret: ");
     let mut secret = String::new();
     io::stdin().read_line(&mut secret).unwrap();
-    secret = secret.trim().to_string();
 
-    let secret = Integer::from_digits(create_sha256_from_string(&secret).as_slice(), Order::MsfBe);
-    let point = Secp256k1::get_g() * secret.clone();
-    let sec256 = Secp256k1::new(Some(secret), point);
+    let sec256 = Secp256k1::new_with_secret(secret.trim());
 
     println!("\n{:?}", sec256.public_key);
 

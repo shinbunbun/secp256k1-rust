@@ -1,7 +1,10 @@
 use rug::{integer::Order, ops::Pow, Integer};
 
 use crate::{
-    field_element::FieldElement, hash::create_hmac256, point::Point, signature::Signature,
+    field_element::FieldElement,
+    hash::{self, create_hmac256},
+    point::Point,
+    signature::Signature,
 };
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -11,12 +14,22 @@ pub struct Secp256k1 {
 }
 
 impl Secp256k1 {
-    pub fn new(
-        private_key: Option<Integer>,
-        public_key: Point<FieldElement<Integer>, Integer>,
-    ) -> Self {
+    pub fn new_with_public_key(public_key: Point<FieldElement<Integer>, Integer>) -> Self {
         Self {
-            private_key,
+            private_key: None,
+            public_key,
+        }
+    }
+
+    pub fn new_with_secret(secret: &str) -> Self {
+        let private_key = Integer::from_digits(
+            hash::create_sha256_from_string(secret).as_slice(),
+            Order::MsfBe,
+        );
+        let public_key = Secp256k1::get_g() * private_key.clone();
+
+        Self {
+            private_key: Some(private_key),
             public_key,
         }
     }
@@ -196,7 +209,7 @@ mod tests {
             )
             .unwrap(),
         );
-        let point = Secp256k1::create_point(Some(px), Some(py));
+        let public_key = Secp256k1::create_point(Some(px), Some(py));
 
         // signature 1
         let z1 = Integer::from_str_radix(
@@ -232,7 +245,7 @@ mod tests {
         )
         .unwrap();
 
-        let sec256 = Secp256k1::new(None, point);
+        let sec256 = Secp256k1::new_with_public_key(public_key);
 
         assert!(sec256.verify(z1, Signature { r: r1, s: s1 }));
         assert!(sec256.verify(z2, Signature { r: r2, s: s2 }));
@@ -240,10 +253,6 @@ mod tests {
 
     #[test]
     fn test_sign() {
-        let secret = Integer::from_digits(
-            create_sha256_from_string("my secret").as_slice(),
-            Order::MsfBe,
-        );
         let message = Integer::from_digits(
             create_sha256_from_string("my message").as_slice(),
             Order::MsfBe,
@@ -253,8 +262,7 @@ mod tests {
             Order::MsfBe,
         );
 
-        let point = Secp256k1::get_g() * secret.clone();
-        let sec256 = Secp256k1::new(Some(secret), point);
+        let sec256 = Secp256k1::new_with_secret("my secret");
         let k = sec256.deterministic_k(message.clone());
         let signature = sec256.sign(message.clone(), k);
 
