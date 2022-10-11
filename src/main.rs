@@ -2,16 +2,12 @@ use std::{io, process::exit, str::FromStr};
 
 use rug::{integer::Order, Integer};
 
-use crate::{
-    hash::create_sha256_from_string, private_key::PrivateKey, secp256k1::Secp256k1,
-    signature::Signature,
-};
+use crate::{hash::create_sha256_from_string, secp256k1::Secp256k1, signature::Signature};
 
 mod field_element;
 mod hash;
 mod point;
 mod pow;
-mod private_key;
 mod secp256k1;
 mod signature;
 
@@ -50,7 +46,7 @@ fn verify() {
     ));
 
     let point = Secp256k1::create_point(x, y);
-    let sec256 = Secp256k1::new(None, Some(point));
+    let sec256 = Secp256k1::new(None, point);
 
     println!("\n4. Please input the message: ");
     let mut message = String::new();
@@ -85,30 +81,10 @@ fn sign() {
     secret = secret.trim().to_string();
 
     let secret = Integer::from_digits(create_sha256_from_string(&secret).as_slice(), Order::MsfBe);
-    let private_key = PrivateKey::new(secret.clone(), Secp256k1::get_g() * secret);
-    let sec256 = Secp256k1::new(Some(private_key), None);
+    let point = Secp256k1::get_g() * secret.clone();
+    let sec256 = Secp256k1::new(Some(secret), point);
 
-    println!(
-        "\nPublic key(x, y): ({}, {})",
-        sec256
-            .private_key
-            .as_ref()
-            .unwrap()
-            .point
-            .x
-            .as_ref()
-            .unwrap()
-            .num,
-        sec256
-            .private_key
-            .as_ref()
-            .unwrap()
-            .point
-            .y
-            .as_ref()
-            .unwrap()
-            .num
-    );
+    println!("\n{:?}", sec256.public_key);
 
     println!("\n3. Please input message: ");
     let mut message = String::new();

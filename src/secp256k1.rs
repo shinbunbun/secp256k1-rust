@@ -1,20 +1,19 @@
 use rug::{integer::Order, ops::Pow, Integer};
 
 use crate::{
-    field_element::FieldElement, hash::create_hmac256, point::Point, private_key::PrivateKey,
-    signature::Signature,
+    field_element::FieldElement, hash::create_hmac256, point::Point, signature::Signature,
 };
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Secp256k1 {
-    pub private_key: Option<PrivateKey>,
-    pub public_key: Option<Point<FieldElement<Integer>, Integer>>,
+    pub private_key: Option<Integer>,
+    pub public_key: Point<FieldElement<Integer>, Integer>,
 }
 
 impl Secp256k1 {
     pub fn new(
-        private_key: Option<PrivateKey>,
-        public_key: Option<Point<FieldElement<Integer>, Integer>>,
+        private_key: Option<Integer>,
+        public_key: Point<FieldElement<Integer>, Integer>,
     ) -> Self {
         Self {
             private_key,
@@ -23,14 +22,6 @@ impl Secp256k1 {
     }
 
     pub fn verify(&self, z: Integer, sig: Signature) -> bool {
-        let public_key = if self.private_key.is_some() {
-            self.private_key.clone().unwrap().point
-        } else {
-            if self.public_key.is_none() {
-                panic!("Public key is not set");
-            }
-            self.public_key.clone().unwrap()
-        };
         let n = Secp256k1::get_n();
         let g = Secp256k1::get_g();
 
@@ -38,7 +29,7 @@ impl Secp256k1 {
         let u = z * s_inv.clone() % &n;
         let v = sig.r.clone() * s_inv % &n;
         let total = Secp256k1::scalar_multiplication(g, u)
-            + Secp256k1::scalar_multiplication(public_key, v);
+            + Secp256k1::scalar_multiplication(self.public_key.clone(), v);
         if total.x.is_none() {
             panic!("Total is at infinity");
         }
@@ -55,7 +46,7 @@ impl Secp256k1 {
 
         let r = (g * k.clone()).x.unwrap().num;
         let k_inv = k.pow_mod(&(n.clone() - 2), &n).unwrap();
-        let mut s = (r.clone() * self.private_key.clone().unwrap().secret + z) * k_inv % n.clone();
+        let mut s = (r.clone() * self.private_key.clone().unwrap() + z) * k_inv % n.clone();
         if s > n.clone() / 2 {
             s = n - s
         }
@@ -123,7 +114,6 @@ impl Secp256k1 {
             .private_key
             .clone()
             .unwrap()
-            .secret
             .to_digits::<u8>(Order::MsfBe);
 
         v.push(b'\x00');
@@ -242,7 +232,7 @@ mod tests {
         )
         .unwrap();
 
-        let sec256 = Secp256k1::new(None, Some(point));
+        let sec256 = Secp256k1::new(None, point);
 
         assert!(sec256.verify(z1, Signature { r: r1, s: s1 }));
         assert!(sec256.verify(z2, Signature { r: r2, s: s2 }));
@@ -264,8 +254,7 @@ mod tests {
         );
 
         let point = Secp256k1::get_g() * secret.clone();
-        let private_key = PrivateKey::new(secret, point);
-        let sec256 = Secp256k1::new(Some(private_key), None);
+        let sec256 = Secp256k1::new(Some(secret), point);
         let k = sec256.deterministic_k(message.clone());
         let signature = sec256.sign(message.clone(), k);
 
