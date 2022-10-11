@@ -78,7 +78,11 @@ fn sign() {
 
     let sec256 = Secp256k1::new_with_secret(secret.trim());
 
-    println!("\n{:?}", sec256.public_key);
+    println!(
+        "\nPublic Key: (x, y) = ({}, {})",
+        sec256.public_key.x.clone().unwrap().num,
+        sec256.public_key.y.clone().unwrap().num
+    );
 
     println!("\n3. Please input message: ");
     let mut message = String::new();
