@@ -4,3 +4,4 @@ pub use signature::Signature;
 pub mod hash;
 mod sign;
 mod signature;
+pub use sign::Sign;

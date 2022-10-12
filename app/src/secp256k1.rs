@@ -1,6 +1,6 @@
 use elliptic_curve::{
     hash::{create_hmac256, create_sha256_from_string},
-    Point, Signature,
+    Point, Sign, Signature,
 };
 use rug::{integer::Order, ops::Pow, Integer};
 
@@ -12,8 +12,8 @@ pub struct Secp256k1 {
     pub public_key: Point<FieldElement<Integer>, Integer>,
 }
 
-impl Secp256k1 {
-    pub fn new(
+impl Sign<FieldElement<Integer>, Integer> for Secp256k1 {
+    fn new(
         private_key: Option<Integer>,
         public_key: Point<FieldElement<Integer>, Integer>,
     ) -> Self {
@@ -23,7 +23,7 @@ impl Secp256k1 {
         }
     }
 
-    pub fn generate_key_pair_from_secret(secret: &str) -> Self {
+    fn generate_key_pair_from_secret(secret: &str) -> Self {
         let private_key =
             Integer::from_digits(create_sha256_from_string(secret).as_slice(), Order::MsfBe);
         let public_key = Secp256k1::get_g() * private_key.clone();
@@ -33,7 +33,16 @@ impl Secp256k1 {
         }
     }
 
-    pub fn verify(&self, z: Integer, sig: Signature) -> bool {
+    fn generate_public_key_from_coord(
+        x: Integer,
+        y: Integer,
+    ) -> Point<FieldElement<Integer>, Integer> {
+        let x = Secp256k1::create_field_element(x);
+        let y = Secp256k1::create_field_element(y);
+        Secp256k1::create_point(Some(x), Some(y))
+    }
+
+    fn verify(&self, z: Integer, sig: Signature) -> bool {
         let n = Secp256k1::get_n();
         let g = Secp256k1::get_g();
 
@@ -48,7 +57,7 @@ impl Secp256k1 {
         total.x.unwrap() == Secp256k1::create_field_element(sig.r)
     }
 
-    pub fn sign(&self, z: Integer, k: Integer) -> Signature {
+    fn sign(&self, z: Integer, k: Integer) -> Signature {
         if self.private_key.is_none() {
             panic!("Private key is not set");
         }
@@ -65,28 +74,6 @@ impl Secp256k1 {
         Signature { r, s }
     }
 
-    pub fn create_field_element(num: Integer) -> FieldElement<Integer> {
-        let p = Integer::from(2).pow(256) - Integer::from(2).pow(32) - Integer::from(977);
-        FieldElement::new(num, p)
-    }
-
-    pub fn create_point(
-        x: Option<FieldElement<Integer>>,
-        y: Option<FieldElement<Integer>>,
-    ) -> Point<FieldElement<Integer>, Integer> {
-        let a = Secp256k1::create_field_element(Integer::from(0));
-        let b = Secp256k1::create_field_element(Integer::from(7));
-        Point::new(x, y, a, b)
-    }
-
-    fn scalar_multiplication(
-        point: Point<FieldElement<Integer>, Integer>,
-        mut coefficient: Integer,
-    ) -> Point<FieldElement<Integer>, Integer> {
-        coefficient %= Secp256k1::get_n();
-        point * coefficient
-    }
-
     fn get_n() -> Integer {
         Integer::from_str_radix(
             "fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141",
@@ -95,7 +82,7 @@ impl Secp256k1 {
         .unwrap()
     }
 
-    pub fn get_g() -> Point<FieldElement<Integer>, Integer> {
+    fn get_g() -> Point<FieldElement<Integer>, Integer> {
         Secp256k1::create_point(
             Some(Secp256k1::create_field_element(
                 Integer::from_str_radix(
@@ -114,7 +101,7 @@ impl Secp256k1 {
         )
     }
 
-    pub fn deterministic_k(&self, mut z: Integer) -> Integer {
+    fn deterministic_k(&self, mut z: Integer) -> Integer {
         let n = Secp256k1::get_n();
         if z > n {
             z -= n.clone();
@@ -154,6 +141,30 @@ impl Secp256k1 {
 
             v = create_hmac256(&k, &v);
         }
+    }
+}
+
+impl Secp256k1 {
+    fn create_field_element(num: Integer) -> FieldElement<Integer> {
+        let p = Integer::from(2).pow(256) - Integer::from(2).pow(32) - Integer::from(977);
+        FieldElement::new(num, p)
+    }
+
+    fn create_point(
+        x: Option<FieldElement<Integer>>,
+        y: Option<FieldElement<Integer>>,
+    ) -> Point<FieldElement<Integer>, Integer> {
+        let a = Secp256k1::create_field_element(Integer::from(0));
+        let b = Secp256k1::create_field_element(Integer::from(7));
+        Point::new(x, y, a, b)
+    }
+
+    fn scalar_multiplication(
+        point: Point<FieldElement<Integer>, Integer>,
+        mut coefficient: Integer,
+    ) -> Point<FieldElement<Integer>, Integer> {
+        coefficient %= Secp256k1::get_n();
+        point * coefficient
     }
 }
 
