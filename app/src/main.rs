@@ -1,11 +1,10 @@
 use std::{io, process::exit, str::FromStr};
 
-use elliptic_curve::Signature;
+use elliptic_curve::{hash::create_sha256_from_string, Signature};
 use rug::{integer::Order, Integer};
 
-use crate::{hash::create_sha256_from_string, secp256k1::Secp256k1};
+use crate::secp256k1::Secp256k1;
 
-mod hash;
 mod secp256k1;
 
 fn main() {
@@ -43,7 +42,7 @@ fn verify() {
     ));
 
     let public_key = Secp256k1::create_point(x, y);
-    let sec256 = Secp256k1::new_with_public_key(public_key);
+    let sec256 = Secp256k1::new(None, public_key);
 
     println!("\n4. Please input the message: ");
     let mut message = String::new();
@@ -76,7 +75,7 @@ fn sign() {
     let mut secret = String::new();
     io::stdin().read_line(&mut secret).unwrap();
 
-    let sec256 = Secp256k1::new_with_secret(secret.trim());
+    let sec256 = Secp256k1::generate_key_pair_from_secret(secret.trim());
 
     println!(
         "\nPublic Key: (x, y) = ({}, {})",

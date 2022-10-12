@@ -1,7 +1,8 @@
-use elliptic_curve::{Point, Signature};
+use elliptic_curve::{
+    hash::{create_hmac256, create_sha256_from_string},
+    Point, Signature,
+};
 use rug::{integer::Order, ops::Pow, Integer};
-
-use crate::hash::{self, create_hmac256};
 
 use field_element::FieldElement;
 
@@ -12,20 +13,20 @@ pub struct Secp256k1 {
 }
 
 impl Secp256k1 {
-    pub fn new_with_public_key(public_key: Point<FieldElement<Integer>, Integer>) -> Self {
+    pub fn new(
+        private_key: Option<Integer>,
+        public_key: Point<FieldElement<Integer>, Integer>,
+    ) -> Self {
         Self {
-            private_key: None,
+            private_key,
             public_key,
         }
     }
 
-    pub fn new_with_secret(secret: &str) -> Self {
-        let private_key = Integer::from_digits(
-            hash::create_sha256_from_string(secret).as_slice(),
-            Order::MsfBe,
-        );
+    pub fn generate_key_pair_from_secret(secret: &str) -> Self {
+        let private_key =
+            Integer::from_digits(create_sha256_from_string(secret).as_slice(), Order::MsfBe);
         let public_key = Secp256k1::get_g() * private_key.clone();
-
         Self {
             private_key: Some(private_key),
             public_key,
@@ -158,9 +159,8 @@ impl Secp256k1 {
 
 #[cfg(test)]
 mod tests {
+    use elliptic_curve::hash::create_sha256_from_string;
     use rug::integer::Order;
-
-    use crate::hash::create_sha256_from_string;
 
     use super::*;
 
@@ -243,7 +243,7 @@ mod tests {
         )
         .unwrap();
 
-        let sec256 = Secp256k1::new_with_public_key(public_key);
+        let sec256 = Secp256k1::new(None, public_key);
 
         assert!(sec256.verify(z1, Signature { r: r1, s: s1 }));
         assert!(sec256.verify(z2, Signature { r: r2, s: s2 }));
@@ -260,7 +260,7 @@ mod tests {
             Order::MsfBe,
         );
 
-        let sec256 = Secp256k1::new_with_secret("my secret");
+        let sec256 = Secp256k1::generate_key_pair_from_secret("my secret");
         let k = sec256.deterministic_k(message.clone());
         let signature = sec256.sign(message.clone(), k);
 
