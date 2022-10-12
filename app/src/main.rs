@@ -26,16 +26,19 @@ fn main() {
     }
 }
 
+fn read_line(input: &mut String) -> &str {
+    io::stdin().read_line(input).unwrap();
+    input.trim()
+}
+
 fn verify() {
     println!("\n2. Please input the public key x: ");
     let mut x = String::new();
-    io::stdin().read_line(&mut x).unwrap();
-    let x = x.trim();
+    let x = read_line(&mut x);
 
     println!("\n3. Please input the public key y: ");
     let mut y = String::new();
-    io::stdin().read_line(&mut y).unwrap();
-    let y = y.trim();
+    let y = read_line(&mut y);
 
     let public_key = Secp256k1::generate_public_key_from_coord(
         Integer::from_str(x).unwrap(),
@@ -45,19 +48,18 @@ fn verify() {
 
     println!("\n4. Please input the message: ");
     let mut message = String::new();
-    io::stdin().read_line(&mut message).unwrap();
-    let message = message.trim();
-    let message = Integer::from_digits(create_sha256_from_string(message).as_slice(), Order::MsfBe);
+    let message = Integer::from_digits(
+        create_sha256_from_string(read_line(&mut message)).as_slice(),
+        Order::MsfBe,
+    );
 
     println!("\n5. Please input the signature r: ");
     let mut r = String::new();
-    io::stdin().read_line(&mut r).unwrap();
-    let r = Integer::from_str(r.trim()).unwrap();
+    let r = Integer::from_str(read_line(&mut r)).unwrap();
 
     println!("\n6. Please input the signature s: ");
     let mut s = String::new();
-    io::stdin().read_line(&mut s).unwrap();
-    let s = Integer::from_str(s.trim()).unwrap();
+    let s = Integer::from_str(read_line(&mut s)).unwrap();
 
     let signature = Signature::new(r, s);
     let result = sec256.verify(message, signature);
@@ -72,9 +74,8 @@ fn verify() {
 fn sign() {
     println!("\n2. Please input secret: ");
     let mut secret = String::new();
-    io::stdin().read_line(&mut secret).unwrap();
 
-    let sec256 = Secp256k1::generate_key_pair_from_secret(secret.trim());
+    let sec256 = Secp256k1::generate_key_pair_from_secret(read_line(&mut secret));
 
     println!(
         "\nPublic Key: (x, y) = ({}, {})",
@@ -84,9 +85,8 @@ fn sign() {
 
     println!("\n3. Please input message: ");
     let mut message = String::new();
-    io::stdin().read_line(&mut message).unwrap();
     let message = Integer::from_digits(
-        create_sha256_from_string(message.trim()).as_slice(),
+        create_sha256_from_string(read_line(&mut message)).as_slice(),
         Order::MsfBe,
     );
 
