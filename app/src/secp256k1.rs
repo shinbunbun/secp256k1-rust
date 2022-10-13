@@ -1,6 +1,6 @@
 use elliptic_curve::{
     hash::{create_hmac256, create_sha256_from_string},
-    Point, Sign, Signature,
+    Ecdsa, Point, Signature,
 };
 use rug::{integer::Order, ops::Pow, Integer};
 
@@ -12,7 +12,7 @@ pub struct Secp256k1 {
     pub public_key: Point<FieldElement<Integer>, Integer>,
 }
 
-impl Sign<FieldElement<Integer>, Integer> for Secp256k1 {
+impl Ecdsa<FieldElement<Integer>, Integer> for Secp256k1 {
     fn new(
         private_key: Option<Integer>,
         public_key: Point<FieldElement<Integer>, Integer>,

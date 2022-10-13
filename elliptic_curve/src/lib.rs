@@ -4,4 +4,4 @@ pub use signature::Signature;
 mod ecdsa;
 pub mod hash;
 mod signature;
-pub use ecdsa::Sign;
+pub use ecdsa::Ecdsa;

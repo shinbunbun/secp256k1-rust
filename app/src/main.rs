@@ -1,6 +1,6 @@
 use std::{io, process::exit, str::FromStr};
 
-use elliptic_curve::{hash::create_sha256_from_string, Sign, Signature};
+use elliptic_curve::{hash::create_sha256_from_string, Ecdsa, Signature};
 use rug::{integer::Order, Integer};
 
 use crate::secp256k1::Secp256k1;

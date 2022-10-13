@@ -1,6 +1,6 @@
 use crate::{signature::Signature, Point};
 
-pub trait Sign<T, U> {
+pub trait Ecdsa<T, U> {
     fn new(private_key: Option<U>, public_key: Point<T, U>) -> Self;
     fn generate_key_pair_from_secret(secret: &str) -> Self;
     fn generate_public_key_from_coord(x: U, y: U) -> Point<T, U>;
