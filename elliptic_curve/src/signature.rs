@@ -1,13 +1,11 @@
-use rug::Integer;
-
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct Signature {
-    pub r: Integer,
-    pub s: Integer,
+pub struct Signature<T> {
+    pub r: T,
+    pub s: T,
 }
 
-impl Signature {
-    pub fn new(r: Integer, s: Integer) -> Self {
+impl<T> Signature<T> {
+    pub fn new(r: T, s: T) -> Self {
         Self { r, s }
     }
 }

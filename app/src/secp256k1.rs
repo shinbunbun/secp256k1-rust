@@ -42,7 +42,7 @@ impl Sign<FieldElement<Integer>, Integer> for Secp256k1 {
         Secp256k1::create_point(Some(x), Some(y))
     }
 
-    fn verify(&self, z: Integer, sig: Signature) -> bool {
+    fn verify(&self, z: Integer, sig: Signature<Integer>) -> bool {
         let n = Secp256k1::get_n();
         let g = Secp256k1::get_g();
 
@@ -57,7 +57,7 @@ impl Sign<FieldElement<Integer>, Integer> for Secp256k1 {
         total.x.unwrap() == Secp256k1::create_field_element(sig.r)
     }
 
-    fn sign(&self, z: Integer, k: Integer) -> Signature {
+    fn sign(&self, z: Integer, k: Integer) -> Signature<Integer> {
         if self.private_key.is_none() {
             panic!("Private key is not set");
         }
