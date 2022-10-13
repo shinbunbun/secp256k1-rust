@@ -1,7 +1,7 @@
 mod point;
 pub use point::Point;
 pub use signature::Signature;
+mod ecdsa;
 pub mod hash;
-mod sign;
 mod signature;
-pub use sign::Sign;
+pub use ecdsa::Sign;
