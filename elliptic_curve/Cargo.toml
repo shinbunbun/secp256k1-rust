@@ -8,6 +8,4 @@ edition = "2021"
 [dependencies]
 rug = "1.17.0"
 num-traits = "0.2.15"
-hmac = "0.12.1"
-sha2 = "0.10.6"
 field_element = { path = "../field_element" }

@@ -1,10 +1,9 @@
-use elliptic_curve::{
-    hash::{create_hmac256, create_sha256_from_string},
-    Ecdsa, Point, Signature,
-};
+use elliptic_curve::{Ecdsa, Point, Signature};
 use rug::{integer::Order, ops::Pow, Integer};
 
 use field_element::FieldElement;
+
+use crate::hash::{create_hmac256, create_sha256_from_string};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Secp256k1 {
@@ -170,7 +169,6 @@ impl Secp256k1 {
 
 #[cfg(test)]
 mod tests {
-    use elliptic_curve::hash::create_sha256_from_string;
     use rug::integer::Order;
 
     use super::*;

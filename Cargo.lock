@@ -160,10 +160,8 @@ name = "elliptic_curve"
 version = "0.1.0"
 dependencies = [
  "field_element",
- "hmac",
  "num-traits",
  "rug",
- "sha2",
 ]
 
 [[package]]
