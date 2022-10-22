@@ -141,6 +141,27 @@ impl Ecdsa<FieldElement<Integer>, Integer> for Secp256k1 {
             v = create_hmac256(&k, &v);
         }
     }
+
+    fn sec(&self) -> Vec<u8> {
+        let mut sec = vec![0x04];
+        sec.extend(
+            self.public_key
+                .x
+                .clone()
+                .unwrap()
+                .num
+                .to_digits::<u8>(Order::MsfBe),
+        );
+        sec.extend(
+            self.public_key
+                .y
+                .clone()
+                .unwrap()
+                .num
+                .to_digits::<u8>(Order::MsfBe),
+        );
+        sec
+    }
 }
 
 impl Secp256k1 {
@@ -169,6 +190,7 @@ impl Secp256k1 {
 
 #[cfg(test)]
 mod tests {
+    use hex::ToHex;
     use rug::integer::Order;
 
     use super::*;
@@ -275,5 +297,23 @@ mod tests {
 
         assert!(sec256.verify(message, signature.clone()));
         assert!(!sec256.verify(message2, signature));
+    }
+
+    #[test]
+    fn test_sec() {
+        let private_key_1 = Integer::from(5000);
+        let private_key_2 = Integer::from(2018).pow(5);
+        let private_key_3 = Integer::from_str_radix("deadbeef12345", 16).unwrap();
+        let public_key_1 = Secp256k1::get_g() * private_key_1.clone();
+        let public_key_2 = Secp256k1::get_g() * private_key_2.clone();
+        let public_key_3 = Secp256k1::get_g() * private_key_3.clone();
+
+        let sec256_1 = Secp256k1::new(Some(private_key_1), public_key_1);
+        let sec256_2 = Secp256k1::new(Some(private_key_2), public_key_2);
+        let sec256_3 = Secp256k1::new(Some(private_key_3), public_key_3);
+
+        assert_eq!(sec256_1.sec().encode_hex::<String>(), "04ffe558e388852f0120e46af2d1b370f85854a8eb0841811ece0e3e03d282d57c315dc72890a4f10a1481c031b03b351b0dc79901ca18a00cf009dbdb157a1d10");
+        assert_eq!(sec256_2.sec().encode_hex::<String>(), "04027f3da1918455e03c46f659266a1bb5204e959db7364d2f473bdf8f0a13cc9dff87647fd023c13b4a4994f17691895806e1b40b57f4fd22581a4f46851f3b06");
+        assert_eq!(sec256_3.sec().encode_hex::<String>(), "04d90cd625ee87dd38656dd95cf79f65f60f7273b67d3096e68bd81e4f5342691f842efa762fd59961d0e99803c61edba8b3e3f7dc3a341836f97733aebf987121");
     }
 }
