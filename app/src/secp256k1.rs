@@ -1,5 +1,6 @@
 use elliptic_curve::{Ecdsa, Point, Signature};
-use rug::{integer::Order, ops::Pow, Integer};
+use num_traits::Pow;
+use rug::{integer::Order, ops::Pow as OtherPow, Integer};
 
 use field_element::FieldElement;
 
@@ -189,7 +190,33 @@ impl Ecdsa<FieldElement<Integer>, Integer> for Secp256k1 {
                 public_key,
             };
         }
-        todo!()
+
+        let is_even = sec[0] == 0x02;
+        let x = Secp256k1::create_field_element(Integer::from_digits(&sec[1..], Order::MsfBe));
+        let alpha =
+            x.clone().pow(Integer::from(3)) + Secp256k1::create_field_element(Integer::from(7));
+        let beta = Secp256k1::sqrt(alpha);
+
+        let even_beta: FieldElement<Integer>;
+        let odd_beta: FieldElement<Integer>;
+        if beta.num.is_even() {
+            even_beta = beta.clone();
+            odd_beta = Secp256k1::create_field_element(x.prime.clone() - beta.num);
+        } else {
+            even_beta = Secp256k1::create_field_element(x.prime.clone() - beta.clone().num);
+            odd_beta = beta;
+        }
+        if is_even {
+            Self {
+                private_key: None,
+                public_key: Secp256k1::create_point(Some(x), Some(even_beta)),
+            }
+        } else {
+            Self {
+                private_key: None,
+                public_key: Secp256k1::create_point(Some(x), Some(odd_beta)),
+            }
+        }
     }
 }
 
@@ -214,6 +241,10 @@ impl Secp256k1 {
     ) -> Point<FieldElement<Integer>, Integer> {
         coefficient %= Secp256k1::get_n();
         point * coefficient
+    }
+
+    fn sqrt(num: FieldElement<Integer>) -> FieldElement<Integer> {
+        num.clone().pow((num.prime + 1) / 4)
     }
 }
 
@@ -378,7 +409,7 @@ mod tests {
             Secp256k1::parse_sec(&sec256_3.sec(false)).public_key,
             sec256_3.public_key
         );
-        /* assert_eq!(
+        assert_eq!(
             Secp256k1::parse_sec(&sec256_4.sec(true)).public_key,
             sec256_4.public_key
         );
@@ -389,6 +420,6 @@ mod tests {
         assert_eq!(
             Secp256k1::parse_sec(&sec256_6.sec(true)).public_key,
             sec256_6.public_key
-        ); */
+        );
     }
 }
