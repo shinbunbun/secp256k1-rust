@@ -178,6 +178,19 @@ impl Ecdsa<FieldElement<Integer>, Integer> for Secp256k1 {
             sec
         }
     }
+
+    fn parse_sec(sec: &[u8]) -> Self {
+        if sec[0] == 0x04 {
+            let x = Integer::from_digits(&sec[1..33], Order::MsfBe);
+            let y = Integer::from_digits(&sec[33..65], Order::MsfBe);
+            let public_key = Secp256k1::generate_public_key_from_coord(x, y);
+            return Self {
+                private_key: None,
+                public_key,
+            };
+        }
+        todo!()
+    }
 }
 
 impl Secp256k1 {
@@ -352,5 +365,30 @@ mod tests {
             sec256_6.sec(true).encode_hex::<String>(),
             "0296be5b1292f6c856b3c5654e886fc13511462059089cdf9c479623bfcbe77690"
         );
+
+        assert_eq!(
+            Secp256k1::parse_sec(&sec256_1.sec(false)).public_key,
+            sec256_1.public_key
+        );
+        assert_eq!(
+            Secp256k1::parse_sec(&sec256_2.sec(false)).public_key,
+            sec256_2.public_key
+        );
+        assert_eq!(
+            Secp256k1::parse_sec(&sec256_3.sec(false)).public_key,
+            sec256_3.public_key
+        );
+        /* assert_eq!(
+            Secp256k1::parse_sec(&sec256_4.sec(true)).public_key,
+            sec256_4.public_key
+        );
+        assert_eq!(
+            Secp256k1::parse_sec(&sec256_5.sec(true)).public_key,
+            sec256_5.public_key
+        );
+        assert_eq!(
+            Secp256k1::parse_sec(&sec256_6.sec(true)).public_key,
+            sec256_6.public_key
+        ); */
     }
 }

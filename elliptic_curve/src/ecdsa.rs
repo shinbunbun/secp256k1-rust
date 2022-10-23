@@ -10,4 +10,5 @@ pub trait Ecdsa<T, U> {
     fn get_g() -> Point<T, U>;
     fn deterministic_k(&self, z: U) -> U;
     fn sec(&self, compress: bool) -> Vec<u8>;
+    fn parse_sec(sec: &[u8]) -> Self;
 }
