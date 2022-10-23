@@ -160,6 +160,7 @@ name = "elliptic_curve"
 version = "0.1.0"
 dependencies = [
  "field_element",
+ "hex",
  "num-traits",
  "rug",
 ]
